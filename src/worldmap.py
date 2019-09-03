@@ -18,58 +18,70 @@ import matplotlib as mpl
 import numpy as np
 import random
 
-class App(QMainWindow):
+class WorldMapWindow(QWidget):
 
     def __init__(self):
         super().__init__()
         self.left = 0
         self.top = 0
-        self.title = 'Unibrowser'
-        self.width = 1200
+        self.title = 'Unibrowser- World Map'
+        self.width = 1000
         self.height = 800
+        self.setStyleSheet("background-color: rgb(255, 255, 255);")
         
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
         
-        self.canvas =  WorldMapCanvas(self, width=9, height=7.5)
-        self.canvas.move(10,10)        
+        layout = QVBoxLayout()
+        self.canvas =  WorldMapCanvas(self, width=9, height=7.5) # width and height params don't have any effect when using a layout.
+        layout.addWidget(self.canvas)
         
+        #self.canvas.move(10,10)        
+        
+        """
         button = QPushButton('Set a random colour', self)
         button.setToolTip('Add a random colour to a location on the mapo')
         button.clicked.connect(lambda: self.handleButton())
         button.move(950,10)
         button.resize(140,100)
-
+        """
+        self.setLayout(layout)
         self.show()
     
+    """
     def handleButton(self):
         randomlocation = random.choice(list(self.canvas.patchlistsbylocation.keys()))
         self.canvas.setlocationcolour(randomlocation, self.canvas.colormap(random.random()))
+    """
         
 
 class WorldMapCanvas(FigureCanvas):
 
     def __init__(self, parent=None, width=10, height=8, dpi=None):
         fig = plt.figure(figsize=(width,height))        
-        plt.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.01)
+        #plt.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.01)
+        plt.subplots_adjust(left=0.01, right=0.99, top=1.0, bottom=0.0)
 
         FigureCanvas.__init__(self, fig)
         self.setParent(parent)
 
         FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
-        self.ax = self.figure.add_subplot(111)
+        self.ax = plt.gca()
+        #self.ax = self.figure.add_subplot(111)
         
-        # merc, mill
-        # mill, robin, merc
-        self.map = Basemap(projection='mill',lon_0=0,llcrnrlat=-75,urcrnrlat=87,llcrnrlon=-180,urcrnrlon=180)
-        self.map.drawmapboundary(fill_color='aqua')
+        # graphical parameters
+        self.colormap = matplotlib.cm.inferno #matplotlib.cm.get_cmap('Spectral')
+        self.norm = mpl.colors.LogNorm(vmin=1e-3, vmax=1.0,clip=True) # mpl.colors.Normalize(vmin=0.0, vmax=1.0)       
+        self.oceancolor = '#bff2ff'
+        fig.patch.set_facecolor('white')
+        
+        # possible projections: mill, robin, merc
+        self.map = Basemap(projection='mill',lon_0=0,llcrnrlat=-75,urcrnrlat=85,llcrnrlon=-180,urcrnrlon=180)
+        self.map.drawmapboundary(fill_color=self.oceancolor)
         #self.map.fillcontinents(color='#ddaa66')
         self.map.readshapefile('../shape_files/ne_10m_admin_0_countries/ne_10m_admin_0_countries', 'comarques', drawbounds = False, antialiased=True)
-        
-        self.colormap = matplotlib.cm.inferno #matplotlib.cm.get_cmap('Spectral')
-        self.norm = mpl.colors.LogNorm(vmin=1e-4, vmax=1.0,clip=True) # mpl.colors.Normalize(vmin=0.0, vmax=1.0)
-         
+                 
         self.patchlistsbylocation = {}
         for info, shape in zip(self.map.comarques_info, self.map.comarques):
             patch = Polygon(np.array(shape), True, edgecolor='black', linewidth=0.5,antialiased=True) # , facecolor='red'
@@ -78,28 +90,36 @@ class WorldMapCanvas(FigureCanvas):
             patchlist.append(patch)
             self.patchlistsbylocation[locationname] = patchlist
             self.ax.add_patch(patch)
-         
-        
-        """
-        probabilities = []
-        for loc in self.patchlistsbylocation.keys():
-            probabilities.append(random.random())
-        probabilities = np.array(probabilities)        
-        probabilities[100] = 100.0
-        probabilities /= np.sum(probabilities)
-        """
-        probabilities = np.random.dirichlet(np.full((len(self.patchlistsbylocation),), 1.0))
-        print(probabilities)
-        print(np.max(probabilities))
+            
+        probabilities = np.random.dirichlet(np.full((len(self.patchlistsbylocation),), 0.05))
         for (prob,loc) in zip(probabilities, self.patchlistsbylocation.keys()):
             self.setlocationcolour(loc, self.colormap(self.norm(prob)), drawimmediately=False)
-
-        #xlimits = self.ax.get_xlim()
-
-        #rcParams['axes.prop_cycle'] = cycler(color=self.colormap(np.linspace(0, 1, 100)))
-        cax = fig.add_axes([0.2, 0.07, 0.6, 0.04])
+            
+        #cax = fig.add_axes([0.2, 0.07, 0.6, 0.04])
+        cax = fig.add_axes([0.2, 0.065, 0.6, 0.04])
         cb1 = mpl.colorbar.ColorbarBase(cax, cmap=self.colormap, norm=self.norm, orientation='horizontal')
+        tickcoords = cb1.ax.get_xticks()
+        ticklabels = cb1.ax.get_xticklabels()
+        for (coord,ticklabel) in zip(tickcoords, ticklabels):
+            val = self.norm.inverse(coord)
+            if np.abs(val-1.0) < val*1.0e-10:                
+                ticklabel.set_text("1.0")
+            elif np.abs(val-0.5) < val*1.0e-10:                
+                ticklabel.set_text("0.5")
+            elif np.abs(val-0.1) < val*1.0e-10:
+                ticklabel.set_text("0.1")
+            elif np.abs(val-0.01) < val*1.0e-10:
+                ticklabel.set_text("0.01")
+            elif np.abs(val-0.001) < val*1.0e-10:
+                ticklabel.set_text("0.001")
+            elif np.abs(val-0.0001) < val*1.0e-10:
+                ticklabel.set_text("0.0001")
+        ticklabels[0].set_text("<" + ticklabels[0].get_text())
+                
+                
+        cb1.ax.set_xticklabels(ticklabels)
         cb1.set_label('Estimated probability')
+        print(self.ax.clip_box)
             
         self.draw()
 
@@ -114,5 +134,5 @@ class WorldMapCanvas(FigureCanvas):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = App()
+    ex = WorldMapWindow()
     sys.exit(app.exec_())
