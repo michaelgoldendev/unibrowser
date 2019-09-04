@@ -14,14 +14,14 @@ NO = 2
 defaultyes = [0.90, 0.05, 0.05]
 defaultmaybe = [0.2, 0.60, 0.2]
 defaultno = [0.05, 0.05, 0.90]
-
 class Akinator:
     def __init__(self):
         self.questions = []
         self.answerdict = {}
         self.characters = []
-        self.numcharacters = 0
+        self.numcharacters = 0        
         self.stateprobs = None
+        self.statelogprobs = None
         self.usedquestions = []
         
     def addquestion(self, question):
@@ -31,13 +31,20 @@ class Akinator:
     
     def update(self, qkey, akey):
         print("A: ", answers[akey])
+        logsum = -np.inf
         for ckey in range(self.numcharacters):
-            self.stateprobs[ckey] = self.answerdict[(self.characters[ckey],qkey)][akey]*self.stateprobs[ckey]
-        self.stateprobs = self.stateprobs / np.sum(self.stateprobs)
+            v = np.log(self.answerdict[(self.characters[ckey],qkey)][akey]) + self.statelogprobs[ckey]
+            self.statelogprobs[ckey] = v
+            logsum = np.logaddexp(logsum, v)
+        self.statelogprobs -= logsum
+        self.stateprobs = np.exp(self.statelogprobs)
+        
+        #self.stateprobs = self.stateprobs / np.sum(self.stateprobs)
         sortedcharacters = [(p, character) for (p, character)  in zip(self.stateprobs,self.characters)]
         sortedcharacters.sort()
         for (p, character) in sortedcharacters:
             print(" %s: %0.6f" % (character,p))
+        print(self.statelogprobs)
         print("------------------------------")
         
     def nextquestion_entropy(self):
@@ -622,34 +629,8 @@ def initialise(akinator):
             akinator.answerdict[(c,qkey)] = [0.005, 0.005, 0.99]
         akinator.answerdict[(character,qkey)] = [0.99, 0.005, 0.005] 
     """
-    akinator.stateprobs = np.ones(shape=(akinator.numcharacters))/akinator.numcharacters    
-
-  
-"""
-def nextquestion_entropy2(stateprobs, usedquestions):
-    expectedentropies = np.zeros(shape=len(akinator.questions))
-    for qkey in range(len(akinator.questions)):
-        avgstateprobs = np.zeros(shape=len(characters))
-        for akey in range(len(answers)):
-            tempstateprobs = np.copy(stateprobs)
-            for ckey in range(akinator.numcharacters):
-                tempstateprobs[ckey] = akinator.answerdict[(characters[ckey],qkey)][akey]*tempstateprobs[ckey]
-            tempstateprobs = tempstateprobs / np.sum(tempstateprobs)
-            avgstateprobs += tempstateprobs
-        avgstateprobs /= np.sum(avgstateprobs)
-        entropy = 0.0
-        for p in avgstateprobs:
-            entropy += -p*np.log(p)
-        expectedentropies[qkey] = entropy
-        print("Q%d: %s (expected: %0.7f)" % (qkey, akinator.questions[qkey], entropy))
-    minentropy = np.float("inf")
-    minindex = -1
-    for qkey in range(len(akinator.questions)):
-        if expectedentropies[qkey] < minentropy and qkey not in usedquestions:
-            minentropy = expectedentropies[qkey]
-            minindex = qkey
-    return minindex
-"""
+    akinator.stateprobs = np.ones(shape=(akinator.numcharacters))/akinator.numcharacters
+    akinator.statelogprobs = np.ones(shape=(akinator.numcharacters))*-np.log(akinator.numcharacters)
 
 if __name__== "__main__":    
     akinator = Akinator()
