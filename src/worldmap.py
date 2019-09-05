@@ -14,9 +14,31 @@ from matplotlib.patches import Patch
 import matplotlib.cm
 from matplotlib import rcParams, cycler
 import matplotlib as mpl
+import matplotlib.animation as animation
 
 import numpy as np
 import random
+
+class UnicornIcon(QLabel):
+    
+    def __init__(self, parent):
+        super().__init__(parent)
+        
+        pix = QPixmap("../raw/unibrowser_binoculars_icon-320x501.png")
+        pix = pix.scaledToWidth(64, mode=Qt.SmoothTransformation)
+        self.setPixmap(pix)       
+        self.h = pix.height()
+        self.w = pix.width()
+        print(self.h)
+        
+        self.setGeometry(QRect(0, 0, self.w, self.h))
+        self.setStyleSheet("background-color: rgba(0, 0, 0,0);")
+        
+    def _set_pos(self, pos):
+        
+        self.move(pos.x() - self.w/2, pos.y() - self.h/2)
+
+    pos = pyqtProperty(QPointF, fset=_set_pos)   
 
 class WorldMapWindow(QWidget):
 
@@ -36,8 +58,8 @@ class WorldMapWindow(QWidget):
         self.canvas =  WorldMapCanvas(self, width=9, height=7.5) # width and height params don't have any effect when using a layout.
         layout.addWidget(self.canvas)
         
-        #self.canvas.move(10,10)        
-        
+        #self.canvas.move(10,10)                
+              
         """
         button = QPushButton('Set a random colour', self)
         button.setToolTip('Add a random colour to a location on the mapo')
@@ -46,12 +68,46 @@ class WorldMapWindow(QWidget):
         button.resize(140,100)
         """
         self.setLayout(layout)
+        
+        """
+        self.unicornicon = UnicornIcon(self)
+        self.path = QPainterPath()
+        self.path.moveTo(30, 30)
+        self.path.cubicTo(30, 30, 200, 30, 500, 30)
+        self.initAnimation()
+        """
+        
         self.show()
     
     """
     def handleButton(self):
         randomlocation = random.choice(list(self.canvas.patchlistsbylocation.keys()))
         self.canvas.setlocationcolour(randomlocation, self.canvas.colormap(random.random()))
+    """
+    
+    """
+    def paintEvent(self, e):    
+        
+        qp = QPainter()
+        qp.begin(self)
+        qp.setRenderHint(QPainter.Antialiasing)
+        qp.end()             
+
+        
+    def initAnimation(self):
+        
+        self.anim = QPropertyAnimation(self.unicornicon, b'pos')
+        self.anim.setDuration(1000)
+        
+        self.anim.setStartValue(QPointF(30, 30))
+        
+        vals = [p/100 for p in range(0, 101)]
+
+        for i in vals:
+            self.anim.setKeyValueAt(i, self.path.pointAtPercent(i))  
+                
+        self.anim.setEndValue(QPointF(500, 30))        
+        self.anim.start()
     """
         
 
@@ -68,7 +124,7 @@ class WorldMapCanvas(FigureCanvas):
         FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
         self.ax = plt.gca()
-        #self.ax = self.figure.add_subplot(111)
+                #self.ax = self.figure.add_subplot(111)
         
         # graphical parameters
         self.colormap = matplotlib.cm.inferno #matplotlib.cm.get_cmap('Spectral')
@@ -119,9 +175,30 @@ class WorldMapCanvas(FigureCanvas):
                 
         cb1.ax.set_xticklabels(ticklabels)
         cb1.set_label('Estimated probability')
-        print(self.ax.clip_box)
-            
+        """
+        self.unibrowser_img = plt.imread("../raw/unibrowser_binoculars_icon-320x501.png")
+        
+        self.mapwidth = self.ax.get_xlim()[1]
+        self.mapheight = self.ax.get_ylim()[1]
+        scalefactor = 0.045
+        self.imagewidth = self.mapwidth*scalefactor
+        self.imageheight = self.mapwidth*100.0/64.0*scalefactor      
+        self.imagex = (self.mapwidth-self.imagewidth)/2.0
+        self.imagey = (self.mapheight-self.imageheight)/2.0
+        #self.unibrowser_imgax = self.ax.imshow(self.unibrowser_img, extent=[self.imagex, self.imagex+self.imagewidth, self.imagey, self.imagey+self.imageheight], zorder=1, interpolation='gaussian', animated=True)
+        self.unibrowser_imgax = self.ax.imshow(self.unibrowser_img, zorder=1, interpolation='gaussian', animated=True)
+        ani = animation.FuncAnimation(fig, self.updatefig, interval=10, blit=True)
+        """
+    
         self.draw()
+    
+    """
+    def updatefig(self,*args):
+        self.imagex += self.imagewidth*0.1
+        #self.imagey += self.imageheight*0.001
+        self.unibrowser_imgax.set_extent([self.imagex, self.imagex+self.imagewidth, self.imagey, self.imagey+self.imageheight])
+        return self.unibrowser_imgax,
+    """
 
     def setlocationcolour(self, location, color, drawimmediately=True):
         for patch in self.patchlistsbylocation[location]:
