@@ -30,40 +30,72 @@ class Akinator:
         return qkey
     
     def update(self, qkey, akey):
-        print("A: ", answers[akey])
-        logsum = -np.inf
-        for ckey in range(self.numcharacters):
-            v = np.log(self.answerdict[(self.characters[ckey],qkey)][akey]) + self.statelogprobs[ckey]
-            self.statelogprobs[ckey] = v
-            logsum = np.logaddexp(logsum, v)
-        self.statelogprobs -= logsum
-        self.stateprobs = np.exp(self.statelogprobs)
-        
-        #self.stateprobs = self.stateprobs / np.sum(self.stateprobs)
+        avec = np.zeros(3)
+        avec[akey] = 1.0 # create an answer probability vector with no input noise
+        self.update_helper(qkey, avec)
+    
+    def update_helper(self, qkey, avec): # avec is an answer probability vector, where the probabilities reflect potential input noise
+        self.statelogprobs, self.stateprobs = self.calculate_state_probs(self.statelogprobs, self.stateprobs, qkey, avec)
         sortedcharacters = [(p, character) for (p, character)  in zip(self.stateprobs,self.characters)]
         sortedcharacters.sort()
         for (p, character) in sortedcharacters:
             print(" %s: %0.6f" % (character,p))
         print(self.statelogprobs)
+        print(np.sum(self.stateprobs))
         print("------------------------------")
+        
+    def calculate_state_probs(self, statelogprobs, stateprobs, qkey, avec):
+        
+        hasquestionlogsum = -np.inf
+        noquestionlogsum = -np.inf
+        for ckey in range(self.numcharacters):
+            characterquestionkey = (self.characters[ckey],qkey)
+            if characterquestionkey in self.answerdict:
+                likelihood = np.dot(self.answerdict[characterquestionkey],avec)            
+                v = np.log(likelihood) + statelogprobs[ckey]
+                statelogprobs[ckey] = v
+                hasquestionlogsum = np.logaddexp(hasquestionlogsum, v)
+            else:
+                noquestionlogsum = np.logaddexp(noquestionlogsum, statelogprobs[ckey])
+                print("No question for character %s" % self.characters[ckey])
+        
+        
+        logsum = -np.inf
+        # if one or more characters don't have a particular question, keep their marginal probability the same by multiplying the characters with the question by the following quantity:
+        hasquestionmultiplier = np.log(1.0 - np.exp(noquestionlogsum))
+        for ckey in range(self.numcharacters):
+            characterquestionkey = (self.characters[ckey],qkey)
+            if characterquestionkey in self.answerdict:
+                statelogprobs[ckey] += hasquestionmultiplier-hasquestionlogsum           
+            logsum = np.logaddexp(logsum, statelogprobs[ckey]) # normalisation constant
+                
+        statelogprobs -= logsum
+        stateprobs = np.exp(statelogprobs)
+        
+        return statelogprobs, stateprobs
         
     def nextquestion_entropy(self):
         expectedentropies = np.zeros(shape=len(self.questions))
         for qkey in range(len(self.questions)):
             expectedentropy = 0.0
             for akey in range(len(answers)):
-                tempstateprobs = np.copy(self.stateprobs)
-                for ckey in range(self.numcharacters):
-                    tempstateprobs[ckey] = self.answerdict[(self.characters[ckey],qkey)][akey]*tempstateprobs[ckey]
-                tempstateprobs = tempstateprobs / np.sum(tempstateprobs)
+                avec = np.zeros(3)
+                avec[akey] = 1.0 # create an answer probability vector with no input noise
+                tempstatelogprobs,tempstateprobs = self.calculate_state_probs(np.copy(self.statelogprobs), np.copy(self.stateprobs), qkey, avec)
+                
                 entropy = 0.0
-                for p in tempstateprobs:
-                    entropy += -p*np.log(p)
+                for (logp,p) in zip(tempstatelogprobs, tempstateprobs):
+                    entropy += -p*logp
                 for ckey in range(self.numcharacters):
-                    expectedentropy += entropy*self.answerdict[(self.characters[ckey],qkey)][akey]*self.stateprobs[ckey]
+                    characterquestionkey = (self.characters[ckey],qkey)
+                    condanswerprob = 1.0/len(answers) # use a flat answer prior if this character doesn't have this question
+                    if characterquestionkey in self.answerdict:
+                        condanswerprob = self.answerdict[characterquestionkey][akey]
+                    expectedentropy += entropy*condanswerprob*self.stateprobs[ckey]
+                    
             expectedentropies[qkey] = expectedentropy
             #print("Q%d: %s (expected: %0.7f" % (qkey, questions[qkey], expectedentropy))
-        minentropy = np.float("inf")
+        minentropy = np.inf
         minindex = -1
         for qkey in range(len(self.questions)):
             if expectedentropies[qkey] < minentropy and qkey not in self.usedquestions:
@@ -76,7 +108,7 @@ class Akinator:
         
 def initialise(akinator):
     qkey = akinator.addquestion("Are they male?")
-    akinator.setanswer(qkey, "Harry Potter", defaultyes)
+    #akinator.setanswer(qkey, "Harry Potter", defaultyes)
     akinator.setanswer(qkey, "Donald Trump", defaultyes)
     akinator.setanswer(qkey, "Pikachu", defaultyes)
     akinator.setanswer(qkey, "Heidi", defaultno)
