@@ -13,8 +13,8 @@ class MainWindow(QWidget):
         super().__init__()
         
         self.model = akinator_model.Akinator()
-        akinator_model.initialise(self.model)
-        self.qkey = self.model.nextquestion_entropy()   
+        akinator_model.setup_character_akinator(self.model)
+        self.qkey = self.model.getnextquestion()
         self.model.usedquestions.append(self.qkey)
         self.label = QLabel(self.model.questions[self.qkey])
         
@@ -120,13 +120,11 @@ class MainWindow(QWidget):
         layout = QVBoxLayout()
         layout.addWidget(chartView)
         self.chartwindow.setLayout(layout)
-        self.chartwindow.show()
-
-        
+        self.chartwindow.show()        
         
     def handleButton(self, answer):
         self.model.update(self.qkey, answer)
-        self.qkey = self.model.nextquestion_entropy()
+        self.qkey = self.model.getnextquestion()
         if self.qkey >= 0:
             self.model.usedquestions.append(self.qkey)
             self.label.setText(self.model.questions[self.qkey])       
@@ -136,7 +134,7 @@ class MainWindow(QWidget):
             
     def updatechart(self):
         self.model.stateprobs = self.model.stateprobs / np.sum(self.model.stateprobs)
-        sortedcharacters = [(p, character) for (p, character)  in zip(self.model.stateprobs,self.model.characters)]
+        sortedcharacters = [(p, character) for (p, character)  in zip(self.model.stateprobs,self.model.states)]
         sortedcharacters.sort(reverse=True)
         vs = []
         cats = []
