@@ -140,6 +140,7 @@ class WorldMapCanvas(FigureCanvas):
                  
         self.patchlistsbylocation = {}
         for info, shape in zip(self.map.comarques_info, self.map.comarques):
+            print(info)
             patch = Polygon(np.array(shape), True, edgecolor='black', linewidth=0.5,antialiased=True) # , facecolor='red'
             locationname = info['NAME_EN']
             patchlist = self.patchlistsbylocation.get(locationname, [])
@@ -175,30 +176,8 @@ class WorldMapCanvas(FigureCanvas):
                 
         cb1.ax.set_xticklabels(ticklabels)
         cb1.set_label('Estimated probability')
-        """
-        self.unibrowser_img = plt.imread("../raw/unibrowser_binoculars_icon-320x501.png")
-        
-        self.mapwidth = self.ax.get_xlim()[1]
-        self.mapheight = self.ax.get_ylim()[1]
-        scalefactor = 0.045
-        self.imagewidth = self.mapwidth*scalefactor
-        self.imageheight = self.mapwidth*100.0/64.0*scalefactor      
-        self.imagex = (self.mapwidth-self.imagewidth)/2.0
-        self.imagey = (self.mapheight-self.imageheight)/2.0
-        #self.unibrowser_imgax = self.ax.imshow(self.unibrowser_img, extent=[self.imagex, self.imagex+self.imagewidth, self.imagey, self.imagey+self.imageheight], zorder=1, interpolation='gaussian', animated=True)
-        self.unibrowser_imgax = self.ax.imshow(self.unibrowser_img, zorder=1, interpolation='gaussian', animated=True)
-        ani = animation.FuncAnimation(fig, self.updatefig, interval=10, blit=True)
-        """
     
         self.draw()
-    
-    """
-    def updatefig(self,*args):
-        self.imagex += self.imagewidth*0.1
-        #self.imagey += self.imageheight*0.001
-        self.unibrowser_imgax.set_extent([self.imagex, self.imagex+self.imagewidth, self.imagey, self.imagey+self.imageheight])
-        return self.unibrowser_imgax,
-    """
 
     def setlocationcolour(self, location, color, drawimmediately=True):
         for patch in self.patchlistsbylocation[location]:
