@@ -7,6 +7,6 @@
   - PyQT5 (5.9.2 or higher)
   - basemap (1.2.0 or higher)  
   - These packages can be installed using the Anaconda Prompt as follows:
-    ```
+    ```console
     conda install numpy pyqt basemap
     ```
