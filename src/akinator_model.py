@@ -8,7 +8,7 @@ def nextquestion_entropy(akinator, verbose=False):
     """Chooses the next question using one-step look-ahead and information entropy.
     
     Returns:
-        int: the question key.
+        int: the key of the next question.
     
     """
     
@@ -25,11 +25,10 @@ def nextquestion_entropy(akinator, verbose=False):
                 entropy += -p*logp
             for ckey in range(akinator.numstates):
                 statequestionkey = (akinator.states[ckey],qkey)
-                condanswerprob = 1.0/len(answers) # use a flat answer prior if this state doesn't have this question
+                condanswerprob = 1.0/akinator.answerdim # use a flat answer prior if this state doesn't have this question
                 if statequestionkey in akinator.answerdict:
                     condanswerprob = akinator.answerdict[statequestionkey][akey]
                 expectedentropy += entropy*condanswerprob*akinator.stateprobs[ckey]
-                #expectedentropy -= np.max(tempstateprobs)*condanswerprob*akinator.stateprobs[ckey]
                 
         expectedentropies[qkey] = expectedentropy
         if verbose:
@@ -43,6 +42,42 @@ def nextquestion_entropy(akinator, verbose=False):
             minindex = qkey 
     return minindex
 
+def nextquestion_maxprob(akinator, verbose=False):
+    """Chooses the next question using one-step look-ahead and the maximum state probability
+    
+    Returns:
+        int: the key of the next question.
+    
+    """
+    
+    expectedmaxprobabilities = np.zeros(shape=len(akinator.questions))
+    for qkey in range(len(akinator.questions)):
+        expectedmaxprobability = 0.0
+        for akey in range(akinator.answerdim):
+            avec = np.zeros(3)
+            avec[akey] = 1.0 # create an answer probability vector with no input noise
+            tempstatelogprobs,tempstateprobs = akinator.calculate_state_probs(np.copy(akinator.statelogprobs), np.copy(akinator.stateprobs), qkey, avec)
+            
+            maxstateprob = np.max(tempstateprobs)
+            for ckey in range(akinator.numstates):
+                statequestionkey = (akinator.states[ckey],qkey)
+                condanswerprob = 1.0/akinator.answerdim # use a flat answer prior if this state doesn't have this question
+                if statequestionkey in akinator.answerdict:
+                    condanswerprob = akinator.answerdict[statequestionkey][akey]
+                expectedmaxprobability += maxstateprob*condanswerprob*akinator.stateprobs[ckey]
+                
+        expectedmaxprobabilities[qkey] = expectedmaxprobability
+        if verbose:
+            print("Q%d: %s (expected: %0.7f)" % (qkey, akinator.questions[qkey], expectedmaxprobability))
+            
+    expectedmax = -np.inf
+    index = -1
+    for qkey in range(len(akinator.questions)): # choose the question that will result in the minimum expected information entropy
+        if expectedmaxprobabilities[qkey] > expectedmax and qkey not in akinator.usedquestions:
+            expectedmax = expectedmaxprobabilities[qkey]
+            index = qkey 
+    return index
+
 class Akinator:
     def __init__(self, answerdim=3, choosenextquestionfunc=nextquestion_entropy):
         self.answerdim = answerdim
@@ -55,12 +90,22 @@ class Akinator:
         self.usedquestions = []
         self.choosenextquestionfunc = choosenextquestionfunc
         
-    def addquestion(self, question):
+    def addquestion(self, questiontext):
         qkey = len(self.questions)
-        self.questions.append(question)
+        if questiontext not in self.questions:
+            self.questions.append(questiontext)
+        else:
+            qkey = self.questions.index(questiontext)
         return qkey
     
+    def addquestionanswer(self, questiontext, statename, answervec):
+        qkey = self.addquestion(questiontext)
+        self.addanswer(qkey, statename, answervec)
+        
+    
     def addanswer(self, qkey, statename, answervec):
+        """Set the (question,state) pair answer probability vector. The probabilities reflect how users are likely to answer the question about the particular state."""
+        
         self.answerdict[(statename,qkey)] = answervec
     
     def update(self, qkey, akey):
@@ -120,595 +165,4 @@ class Akinator:
     
     def getnextquestion(self):
         return self.choosenextquestionfunc(self)
-        
-
-
-answers = ["Yes", "Maybe", "No"]
-YES = 0
-MAYBE = 1
-NO = 2
-        
-def setup_character_akinator(akinator):
-    defaultyes = [0.90, 0.05, 0.05]
-    defaultmaybe = [0.2, 0.60, 0.2]
-    defaultno = [0.05, 0.05, 0.90]
-    
-    qkey = akinator.addquestion("Are they male?")
-    #akinator.addanswer(qkey, "Harry Potter", defaultyes)
-    akinator.addanswer(qkey, "Donald Trump", defaultyes)
-    akinator.addanswer(qkey, "Pikachu", defaultyes)
-    akinator.addanswer(qkey, "Heidi", defaultno)
-    akinator.addanswer(qkey, "Popeye", defaultyes)
-    akinator.addanswer(qkey, "Queen Victoria", defaultno)
-    akinator.addanswer(qkey, "PewDiePie", defaultyes)
-    akinator.addanswer(qkey, "Britney Spears", defaultno)
-    akinator.addanswer(qkey, "Leonardo DiCaprio", defaultyes)
-    akinator.addanswer(qkey, "Gandalf", defaultyes)
-    akinator.addanswer(qkey, "Hillary Clinton", defaultno)
-    akinator.addanswer(qkey, "Nelson Mandela", defaultyes)
-    akinator.addanswer(qkey, "Pythagoras", defaultyes)
-    akinator.addanswer(qkey, "Spiderman", defaultyes)
-    akinator.addanswer(qkey, "Albert Einstein", defaultyes)
-    akinator.addanswer(qkey, "Marilyn Monroe", defaultno)
-    akinator.addanswer(qkey, "Marie Curie", defaultno)
-    akinator.addanswer(qkey, "J. K. Rowling", defaultno)
-    akinator.addanswer(qkey, "Usain Bolt", defaultyes)
-    akinator.addanswer(qkey, "Bill Gates", defaultyes)
-    akinator.addanswer(qkey, "Elon Musk", defaultyes)
-    akinator.addanswer(qkey, "Julius Caesar", defaultyes)
-    akinator.addanswer(qkey, "Pacman", defaultyes)
-    akinator.addanswer(qkey, "Snow White", defaultno)
-    akinator.addanswer(qkey, "Charlie from Charlie and the Chocolate Factory", defaultyes)
-    
-    
-    qkey = akinator.addquestion("Are they real?")
-    akinator.addanswer(qkey, "Harry Potter", defaultno)
-    akinator.addanswer(qkey, "Donald Trump", defaultyes)
-    akinator.addanswer(qkey, "Pikachu", defaultno)
-    akinator.addanswer(qkey, "Heidi", defaultno)
-    akinator.addanswer(qkey, "Popeye", defaultno)
-    akinator.addanswer(qkey, "Queen Victoria", defaultyes)
-    akinator.addanswer(qkey, "PewDiePie", defaultyes)
-    akinator.addanswer(qkey, "Britney Spears", defaultyes)
-    akinator.addanswer(qkey, "Leonardo DiCaprio", defaultyes)
-    akinator.addanswer(qkey, "Gandalf", defaultno)
-    akinator.addanswer(qkey, "Hillary Clinton", defaultyes)
-    akinator.addanswer(qkey, "Nelson Mandela", defaultyes)
-    akinator.addanswer(qkey, "Pythagoras", defaultyes)
-    akinator.addanswer(qkey, "Spiderman", defaultno)
-    akinator.addanswer(qkey, "Albert Einstein", defaultyes)
-    akinator.addanswer(qkey, "Marilyn Monroe", defaultyes)
-    akinator.addanswer(qkey, "Marie Curie", defaultyes)
-    akinator.addanswer(qkey, "J. K. Rowling", defaultyes)
-    akinator.addanswer(qkey, "Usain Bolt", defaultyes)
-    akinator.addanswer(qkey, "Bill Gates", defaultyes)
-    akinator.addanswer(qkey, "Elon Musk", defaultyes)
-    akinator.addanswer(qkey, "Julius Caesar", defaultyes)
-    akinator.addanswer(qkey, "Pacman", defaultno)
-    akinator.addanswer(qkey, "Snow White", defaultno)
-    akinator.addanswer(qkey, "Charlie from Charlie and the Chocolate Factory", defaultno)
-    
-    qkey = akinator.addquestion("Are they animated?")
-    akinator.addanswer(qkey, "Harry Potter", defaultno)
-    akinator.addanswer(qkey, "Donald Trump", defaultno)
-    akinator.addanswer(qkey, "Pikachu", defaultyes)
-    akinator.addanswer(qkey, "Heidi", defaultmaybe)
-    akinator.addanswer(qkey, "Popeye", defaultyes)
-    akinator.addanswer(qkey, "Queen Victoria", defaultno)
-    akinator.addanswer(qkey, "PewDiePie", defaultno)
-    akinator.addanswer(qkey, "Britney Spears", defaultno)
-    akinator.addanswer(qkey, "Leonardo DiCaprio", defaultno)
-    akinator.addanswer(qkey, "Gandalf", defaultno)
-    akinator.addanswer(qkey, "Hillary Clinton", defaultno)
-    akinator.addanswer(qkey, "Nelson Mandela", defaultno)
-    akinator.addanswer(qkey, "Pythagoras", defaultno)
-    akinator.addanswer(qkey, "Spiderman", defaultmaybe)
-    akinator.addanswer(qkey, "Albert Einstein", defaultno)
-    akinator.addanswer(qkey, "Marilyn Monroe", defaultno)
-    akinator.addanswer(qkey, "Marie Curie", defaultno)
-    akinator.addanswer(qkey, "J. K. Rowling", defaultno)
-    akinator.addanswer(qkey, "Usain Bolt", defaultno)
-    akinator.addanswer(qkey, "Bill Gates", defaultno)
-    akinator.addanswer(qkey, "Elon Musk", defaultno)
-    akinator.addanswer(qkey, "Julius Caesar", defaultno)
-    akinator.addanswer(qkey, "Pacman", defaultyes)
-    akinator.addanswer(qkey, "Snow White", defaultyes)
-    akinator.addanswer(qkey, "Charlie from Charlie and the Chocolate Factory", defaultyes)
-    
-    qkey = akinator.addquestion("Are they tall?")
-    akinator.addanswer(qkey, "Harry Potter", defaultmaybe)
-    akinator.addanswer(qkey, "Donald Trump", defaultyes)
-    akinator.addanswer(qkey, "Pikachu", defaultno)
-    akinator.addanswer(qkey, "Heidi", defaultno)
-    akinator.addanswer(qkey, "Popeye", defaultmaybe)
-    akinator.addanswer(qkey, "Queen Victoria", defaultmaybe)
-    akinator.addanswer(qkey, "PewDiePie", defaultmaybe)
-    akinator.addanswer(qkey, "Britney Spears", defaultno)
-    akinator.addanswer(qkey, "Leonardo DiCaprio", defaultno)
-    akinator.addanswer(qkey, "Gandalf", defaultyes)
-    akinator.addanswer(qkey, "Hillary Clinton", defaultno)
-    akinator.addanswer(qkey, "Nelson Mandela", defaultyes)
-    akinator.addanswer(qkey, "Pythagoras", defaultmaybe)
-    akinator.addanswer(qkey, "Spiderman", defaultmaybe)
-    akinator.addanswer(qkey, "Albert Einstein", defaultmaybe)
-    akinator.addanswer(qkey, "Marilyn Monroe", defaultmaybe)
-    akinator.addanswer(qkey, "Marie Curie", defaultmaybe)
-    akinator.addanswer(qkey, "J. K. Rowling", defaultmaybe)
-    akinator.addanswer(qkey, "Usain Bolt", defaultyes)
-    akinator.addanswer(qkey, "Bill Gates", defaultmaybe)
-    akinator.addanswer(qkey, "Elon Musk", defaultmaybe)
-    akinator.addanswer(qkey, "Julius Caesar", defaultmaybe)
-    akinator.addanswer(qkey, "Pacman", defaultno)
-    akinator.addanswer(qkey, "Snow White", defaultmaybe)
-    akinator.addanswer(qkey, "Charlie from Charlie and the Chocolate Factory", defaultno)
-    
-    qkey = akinator.addquestion("Are they a YouTuber?")
-    akinator.addanswer(qkey, "Harry Potter", defaultno)
-    akinator.addanswer(qkey, "Donald Trump", defaultno)
-    akinator.addanswer(qkey, "Pikachu", defaultno)
-    akinator.addanswer(qkey, "Heidi", defaultno)
-    akinator.addanswer(qkey, "Popeye", defaultno)
-    akinator.addanswer(qkey, "Queen Victoria", defaultno)
-    akinator.addanswer(qkey, "PewDiePie", defaultyes)
-    akinator.addanswer(qkey, "Britney Spears", defaultno)
-    akinator.addanswer(qkey, "Leonardo DiCaprio", defaultno)
-    akinator.addanswer(qkey, "Gandalf", defaultno)
-    akinator.addanswer(qkey, "Hillary Clinton", defaultno)
-    akinator.addanswer(qkey, "Nelson Mandela", defaultno)
-    akinator.addanswer(qkey, "Pythagoras", defaultno)
-    akinator.addanswer(qkey, "Spiderman", defaultno)
-    akinator.addanswer(qkey, "Albert Einstein", defaultno)
-    akinator.addanswer(qkey, "Marilyn Monroe", defaultno)
-    akinator.addanswer(qkey, "Marie Curie", defaultno)
-    akinator.addanswer(qkey, "J. K. Rowling", defaultno)
-    akinator.addanswer(qkey, "Usain Bolt", defaultno)
-    akinator.addanswer(qkey, "Bill Gates", defaultno)
-    akinator.addanswer(qkey, "Elon Musk", defaultno)
-    akinator.addanswer(qkey, "Julius Caesar", defaultno)
-    akinator.addanswer(qkey, "Pacman", defaultno)
-    akinator.addanswer(qkey, "Snow White", defaultno)
-    akinator.addanswer(qkey, "Charlie from Charlie and the Chocolate Factory", defaultno)
-    
-    qkey = akinator.addquestion("Are they magic?")
-    akinator.addanswer(qkey, "Harry Potter", defaultyes)
-    akinator.addanswer(qkey, "Donald Trump", defaultno)
-    akinator.addanswer(qkey, "Pikachu", defaultmaybe)
-    akinator.addanswer(qkey, "Heidi", defaultno)
-    akinator.addanswer(qkey, "Popeye", defaultno)
-    akinator.addanswer(qkey, "Queen Victoria", defaultno)
-    akinator.addanswer(qkey, "PewDiePie", defaultno)
-    akinator.addanswer(qkey, "Britney Spears", defaultno)
-    akinator.addanswer(qkey, "Leonardo DiCaprio", defaultno)
-    akinator.addanswer(qkey, "Gandalf", defaultyes)
-    akinator.addanswer(qkey, "Hillary Clinton", defaultno)
-    akinator.addanswer(qkey, "Nelson Mandela", defaultno)
-    akinator.addanswer(qkey, "Pythagoras", defaultno)
-    akinator.addanswer(qkey, "Spiderman", defaultno)
-    akinator.addanswer(qkey, "Albert Einstein", defaultno)
-    akinator.addanswer(qkey, "Marilyn Monroe", defaultno)
-    akinator.addanswer(qkey, "Marie Curie", defaultno)
-    akinator.addanswer(qkey, "J. K. Rowling", defaultno)
-    akinator.addanswer(qkey, "Usain Bolt", defaultno)
-    akinator.addanswer(qkey, "Bill Gates", defaultno)
-    akinator.addanswer(qkey, "Elon Musk", defaultno)
-    akinator.addanswer(qkey, "Julius Caesar", defaultno)
-    akinator.addanswer(qkey, "Pacman", defaultno)
-    akinator.addanswer(qkey, "Snow White", defaultmaybe)
-    akinator.addanswer(qkey, "Charlie from Charlie and the Chocolate Factory", defaultno)
-    
-    qkey = akinator.addquestion("Do they have special powers?")
-    akinator.addanswer(qkey, "Harry Potter", defaultyes)
-    akinator.addanswer(qkey, "Donald Trump", defaultmaybe)
-    akinator.addanswer(qkey, "Pikachu", defaultyes)
-    akinator.addanswer(qkey, "Heidi", defaultno)
-    akinator.addanswer(qkey, "Popeye", defaultyes)
-    akinator.addanswer(qkey, "Queen Victoria", defaultmaybe)
-    akinator.addanswer(qkey, "PewDiePie", defaultno)
-    akinator.addanswer(qkey, "Britney Spears", defaultno)
-    akinator.addanswer(qkey, "Leonardo DiCaprio", defaultno)
-    akinator.addanswer(qkey, "Gandalf", defaultyes)
-    akinator.addanswer(qkey, "Hillary Clinton", defaultno)
-    akinator.addanswer(qkey, "Nelson Mandela", defaultno)
-    akinator.addanswer(qkey, "Pythagoras", defaultno)
-    akinator.addanswer(qkey, "Spiderman", defaultyes)
-    akinator.addanswer(qkey, "Albert Einstein", defaultno)
-    akinator.addanswer(qkey, "Marilyn Monroe", defaultno)
-    akinator.addanswer(qkey, "Marie Curie", defaultno)
-    akinator.addanswer(qkey, "J. K. Rowling", defaultno)
-    akinator.addanswer(qkey, "Usain Bolt", defaultmaybe)
-    akinator.addanswer(qkey, "Bill Gates", defaultno)
-    akinator.addanswer(qkey, "Elon Musk", defaultno)
-    akinator.addanswer(qkey, "Julius Caesar", defaultno)
-    akinator.addanswer(qkey, "Pacman", defaultmaybe)
-    akinator.addanswer(qkey, "Snow White", defaultno)
-    akinator.addanswer(qkey, "Charlie from Charlie and the Chocolate Factory", defaultno)
-    
-    qkey = akinator.addquestion("Are they alive?")
-    akinator.addanswer(qkey, "Harry Potter", defaultno)
-    akinator.addanswer(qkey, "Donald Trump", defaultyes)
-    akinator.addanswer(qkey, "Pikachu", defaultno)
-    akinator.addanswer(qkey, "Heidi", defaultno)
-    akinator.addanswer(qkey, "Popeye", defaultno)
-    akinator.addanswer(qkey, "Queen Victoria", defaultno)
-    akinator.addanswer(qkey, "PewDiePie", defaultyes)
-    akinator.addanswer(qkey, "Britney Spears", defaultyes)
-    akinator.addanswer(qkey, "Leonardo DiCaprio", defaultyes)
-    akinator.addanswer(qkey, "Gandalf", defaultno)
-    akinator.addanswer(qkey, "Hillary Clinton", defaultyes)
-    akinator.addanswer(qkey, "Nelson Mandela", defaultno)
-    akinator.addanswer(qkey, "Pythagoras", defaultno)
-    akinator.addanswer(qkey, "Spiderman", defaultno)
-    akinator.addanswer(qkey, "Albert Einstein", defaultno)
-    akinator.addanswer(qkey, "Marilyn Monroe", defaultno)
-    akinator.addanswer(qkey, "Marie Curie", defaultno)
-    akinator.addanswer(qkey, "J. K. Rowling", defaultyes)
-    akinator.addanswer(qkey, "Usain Bolt", defaultyes)
-    akinator.addanswer(qkey, "Bill Gates", defaultyes)
-    akinator.addanswer(qkey, "Elon Musk", defaultyes)
-    akinator.addanswer(qkey, "Julius Caesar", defaultno)
-    akinator.addanswer(qkey, "Pacman", defaultno)
-    akinator.addanswer(qkey, "Snow White", defaultno)
-    akinator.addanswer(qkey, "Charlie from Charlie and the Chocolate Factory", defaultno)
-    
-    qkey = akinator.addquestion("Are they a child?")
-    akinator.addanswer(qkey, "Harry Potter", defaultmaybe)
-    akinator.addanswer(qkey, "Donald Trump", defaultno)
-    akinator.addanswer(qkey, "Pikachu", defaultmaybe)
-    akinator.addanswer(qkey, "Heidi", defaultyes)
-    akinator.addanswer(qkey, "Popeye", defaultno)
-    akinator.addanswer(qkey, "Queen Victoria", defaultno)
-    akinator.addanswer(qkey, "PewDiePie", defaultno)
-    akinator.addanswer(qkey, "Britney Spears", defaultno)
-    akinator.addanswer(qkey, "Leonardo DiCaprio", defaultno)
-    akinator.addanswer(qkey, "Gandalf", defaultno)
-    akinator.addanswer(qkey, "Hillary Clinton", defaultno)
-    akinator.addanswer(qkey, "Nelson Mandela", defaultno)
-    akinator.addanswer(qkey, "Pythagoras", defaultno)
-    akinator.addanswer(qkey, "Spiderman", defaultno)
-    akinator.addanswer(qkey, "Albert Einstein", defaultno)
-    akinator.addanswer(qkey, "Marilyn Monroe", defaultno)
-    akinator.addanswer(qkey, "Marie Curie", defaultno)
-    akinator.addanswer(qkey, "J. K. Rowling", defaultno)
-    akinator.addanswer(qkey, "Usain Bolt", defaultno)
-    akinator.addanswer(qkey, "Bill Gates", defaultno)
-    akinator.addanswer(qkey, "Elon Musk", defaultno)
-    akinator.addanswer(qkey, "Julius Caesar", defaultno)
-    akinator.addanswer(qkey, "Pacman", defaultno)
-    akinator.addanswer(qkey, "Snow White", defaultmaybe)
-    akinator.addanswer(qkey, "Charlie from Charlie and the Chocolate Factory", defaultyes)
-    
-    qkey = akinator.addquestion("Are they human?")
-    akinator.addanswer(qkey, "Harry Potter", defaultyes)
-    akinator.addanswer(qkey, "Donald Trump", defaultyes)
-    akinator.addanswer(qkey, "Pikachu", defaultno)
-    akinator.addanswer(qkey, "Heidi", defaultyes)
-    akinator.addanswer(qkey, "Popeye", defaultyes)
-    akinator.addanswer(qkey, "Queen Victoria", defaultyes)
-    akinator.addanswer(qkey, "PewDiePie", defaultyes)
-    akinator.addanswer(qkey, "Britney Spears", defaultyes)
-    akinator.addanswer(qkey, "Leonardo DiCaprio", defaultyes)
-    akinator.addanswer(qkey, "Gandalf", defaultmaybe)
-    akinator.addanswer(qkey, "Hillary Clinton", defaultyes)
-    akinator.addanswer(qkey, "Nelson Mandela", defaultyes)
-    akinator.addanswer(qkey, "Pythagoras", defaultyes)
-    akinator.addanswer(qkey, "Spiderman", defaultyes)
-    akinator.addanswer(qkey, "Albert Einstein", defaultyes)
-    akinator.addanswer(qkey, "Marilyn Monroe", defaultyes)
-    akinator.addanswer(qkey, "Marie Curie", defaultyes)
-    akinator.addanswer(qkey, "J. K. Rowling", defaultyes)
-    akinator.addanswer(qkey, "Usain Bolt", defaultyes)
-    akinator.addanswer(qkey, "Bill Gates", defaultyes)
-    akinator.addanswer(qkey, "Elon Musk", defaultyes)
-    akinator.addanswer(qkey, "Julius Caesar", defaultyes)
-    akinator.addanswer(qkey, "Pacman", defaultno)
-    akinator.addanswer(qkey, "Snow White", defaultyes)
-    akinator.addanswer(qkey, "Charlie from Charlie and the Chocolate Factory", defaultyes)
-    
-    qkey = akinator.addquestion("Are they popular with children?")
-    akinator.addanswer(qkey, "Harry Potter", defaultyes)
-    akinator.addanswer(qkey, "Donald Trump", defaultno)
-    akinator.addanswer(qkey, "Pikachu", defaultyes)
-    akinator.addanswer(qkey, "Heidi", defaultyes)
-    akinator.addanswer(qkey, "Popeye", defaultyes)
-    akinator.addanswer(qkey, "Queen Victoria", defaultno)
-    akinator.addanswer(qkey, "PewDiePie", defaultyes)
-    akinator.addanswer(qkey, "Britney Spears", defaultmaybe)
-    akinator.addanswer(qkey, "Leonardo DiCaprio", defaultno)
-    akinator.addanswer(qkey, "Gandalf", defaultmaybe)
-    akinator.addanswer(qkey, "Hillary Clinton", defaultno)
-    akinator.addanswer(qkey, "Nelson Mandela", defaultmaybe)
-    akinator.addanswer(qkey, "Pythagoras", defaultno)
-    akinator.addanswer(qkey, "Spiderman", defaultyes)
-    akinator.addanswer(qkey, "Albert Einstein", defaultno)
-    akinator.addanswer(qkey, "Marilyn Monroe", defaultno)
-    akinator.addanswer(qkey, "Marie Curie", defaultno)
-    akinator.addanswer(qkey, "J. K. Rowling", defaultyes)
-    akinator.addanswer(qkey, "Usain Bolt", defaultmaybe)
-    akinator.addanswer(qkey, "Bill Gates", defaultno)
-    akinator.addanswer(qkey, "Elon Musk", defaultno)
-    akinator.addanswer(qkey, "Julius Caesar", defaultno)
-    akinator.addanswer(qkey, "Pacman", defaultyes)
-    akinator.addanswer(qkey, "Snow White", defaultyes)
-    akinator.addanswer(qkey, "Charlie from Charlie and the Chocolate Factory", defaultyes)
-    
-    qkey = akinator.addquestion("Are they an entertainer?")
-    akinator.addanswer(qkey, "Harry Potter", defaultno)
-    akinator.addanswer(qkey, "Donald Trump", defaultmaybe)
-    akinator.addanswer(qkey, "Pikachu", defaultno)
-    akinator.addanswer(qkey, "Heidi", defaultno)
-    akinator.addanswer(qkey, "Popeye", defaultno)
-    akinator.addanswer(qkey, "Queen Victoria", defaultno)
-    akinator.addanswer(qkey, "PewDiePie", defaultyes)
-    akinator.addanswer(qkey, "Britney Spears", defaultyes)
-    akinator.addanswer(qkey, "Leonardo DiCaprio", defaultyes)
-    akinator.addanswer(qkey, "Gandalf", defaultno)
-    akinator.addanswer(qkey, "Hillary Clinton", defaultno)
-    akinator.addanswer(qkey, "Nelson Mandela", defaultno)
-    akinator.addanswer(qkey, "Pythagoras", defaultno)
-    akinator.addanswer(qkey, "Spiderman", defaultno)
-    akinator.addanswer(qkey, "Albert Einstein", defaultno)
-    akinator.addanswer(qkey, "Marilyn Monroe", defaultyes)
-    akinator.addanswer(qkey, "Marie Curie", defaultno)
-    akinator.addanswer(qkey, "J. K. Rowling", defaultno)
-    akinator.addanswer(qkey, "Usain Bolt", defaultno)
-    akinator.addanswer(qkey, "Bill Gates", defaultno)
-    akinator.addanswer(qkey, "Elon Musk", defaultno)
-    akinator.addanswer(qkey, "Julius Caesar", defaultno)
-    akinator.addanswer(qkey, "Pacman", defaultno)
-    akinator.addanswer(qkey, "Snow White", defaultno)
-    akinator.addanswer(qkey, "Charlie from Charlie and the Chocolate Factory", defaultno)
-    
-    qkey = akinator.addquestion("Are they a politician?")
-    akinator.addanswer(qkey, "Harry Potter", defaultno)
-    akinator.addanswer(qkey, "Donald Trump", defaultyes)
-    akinator.addanswer(qkey, "Pikachu", defaultno)
-    akinator.addanswer(qkey, "Heidi", defaultno)
-    akinator.addanswer(qkey, "Popeye", defaultno)
-    akinator.addanswer(qkey, "Queen Victoria", defaultmaybe)
-    akinator.addanswer(qkey, "PewDiePie", defaultno)
-    akinator.addanswer(qkey, "Britney Spears", defaultno)
-    akinator.addanswer(qkey, "Leonardo DiCaprio", defaultno)
-    akinator.addanswer(qkey, "Gandalf", defaultno)
-    akinator.addanswer(qkey, "Hillary Clinton", defaultyes)
-    akinator.addanswer(qkey, "Nelson Mandela", defaultyes)
-    akinator.addanswer(qkey, "Pythagoras", defaultno)
-    akinator.addanswer(qkey, "Spiderman", defaultno)
-    akinator.addanswer(qkey, "Albert Einstein", defaultno)
-    akinator.addanswer(qkey, "Marilyn Monroe", defaultno)
-    akinator.addanswer(qkey, "Marie Curie", defaultno)
-    akinator.addanswer(qkey, "J. K. Rowling", defaultno)
-    akinator.addanswer(qkey, "Usain Bolt", defaultno)
-    akinator.addanswer(qkey, "Bill Gates", defaultno)
-    akinator.addanswer(qkey, "Elon Musk", defaultno)
-    akinator.addanswer(qkey, "Julius Caesar", defaultmaybe)
-    akinator.addanswer(qkey, "Pacman", defaultno)
-    akinator.addanswer(qkey, "Snow White", defaultno)
-    akinator.addanswer(qkey, "Charlie from Charlie and the Chocolate Factory", defaultno)
-    
-    qkey = akinator.addquestion("Are they American?")
-    akinator.addanswer(qkey, "Harry Potter", defaultno)
-    akinator.addanswer(qkey, "Donald Trump", defaultyes)
-    akinator.addanswer(qkey, "Pikachu", defaultno)
-    akinator.addanswer(qkey, "Heidi", defaultno)
-    akinator.addanswer(qkey, "Popeye", defaultyes)
-    akinator.addanswer(qkey, "Queen Victoria", defaultno)
-    akinator.addanswer(qkey, "PewDiePie", defaultno)
-    akinator.addanswer(qkey, "Britney Spears", defaultyes)
-    akinator.addanswer(qkey, "Leonardo DiCaprio", defaultyes)
-    akinator.addanswer(qkey, "Gandalf", defaultno)
-    akinator.addanswer(qkey, "Hillary Clinton", defaultyes)
-    akinator.addanswer(qkey, "Nelson Mandela", defaultno)
-    akinator.addanswer(qkey, "Pythagoras", defaultno)
-    akinator.addanswer(qkey, "Spiderman", defaultyes)
-    akinator.addanswer(qkey, "Albert Einstein", defaultmaybe)
-    akinator.addanswer(qkey, "Marilyn Monroe", defaultyes)
-    akinator.addanswer(qkey, "Marie Curie", defaultno)
-    akinator.addanswer(qkey, "J. K. Rowling", defaultno)
-    akinator.addanswer(qkey, "Usain Bolt", defaultno)
-    akinator.addanswer(qkey, "Bill Gates", defaultyes)
-    akinator.addanswer(qkey, "Elon Musk", defaultmaybe)
-    akinator.addanswer(qkey, "Julius Caesar", defaultno)
-    akinator.addanswer(qkey, "Pacman", defaultno)
-    akinator.addanswer(qkey, "Snow White", defaultno)
-    akinator.addanswer(qkey, "Charlie from Charlie and the Chocolate Factory", defaultno)
-    
-    qkey = akinator.addquestion("Are they considered attractive?")
-    akinator.addanswer(qkey, "Harry Potter", defaultmaybe)
-    akinator.addanswer(qkey, "Donald Trump", defaultno)
-    akinator.addanswer(qkey, "Pikachu", defaultno)
-    akinator.addanswer(qkey, "Heidi", defaultno)
-    akinator.addanswer(qkey, "Popeye", defaultmaybe)
-    akinator.addanswer(qkey, "Queen Victoria", defaultno)
-    akinator.addanswer(qkey, "PewDiePie", defaultmaybe)
-    akinator.addanswer(qkey, "Britney Spears", defaultmaybe)
-    akinator.addanswer(qkey, "Leonardo DiCaprio", defaultyes)
-    akinator.addanswer(qkey, "Gandalf", defaultno)
-    akinator.addanswer(qkey, "Hillary Clinton", defaultno)
-    akinator.addanswer(qkey, "Nelson Mandela", defaultno)
-    akinator.addanswer(qkey, "Pythagoras", defaultno)
-    akinator.addanswer(qkey, "Spiderman", defaultyes)
-    akinator.addanswer(qkey, "Albert Einstein", defaultno)
-    akinator.addanswer(qkey, "Marilyn Monroe", defaultyes)
-    akinator.addanswer(qkey, "Marie Curie", defaultno)
-    akinator.addanswer(qkey, "J. K. Rowling", defaultmaybe)
-    akinator.addanswer(qkey, "Usain Bolt", defaultmaybe)
-    akinator.addanswer(qkey, "Bill Gates", defaultno)
-    akinator.addanswer(qkey, "Elon Musk", defaultmaybe)
-    akinator.addanswer(qkey, "Julius Caesar", defaultno)
-    akinator.addanswer(qkey, "Pacman", defaultno)
-    akinator.addanswer(qkey, "Snow White", defaultyes)
-    akinator.addanswer(qkey, "Charlie from Charlie and the Chocolate Factory", defaultno)
-    
-    qkey = akinator.addquestion("Are the considered intelligent or wise?")
-    akinator.addanswer(qkey, "Harry Potter", defaultno)
-    akinator.addanswer(qkey, "Donald Trump", defaultno)
-    akinator.addanswer(qkey, "Pikachu", defaultno)
-    akinator.addanswer(qkey, "Heidi", defaultno)
-    akinator.addanswer(qkey, "Popeye", defaultno)
-    akinator.addanswer(qkey, "Queen Victoria", defaultyes)
-    akinator.addanswer(qkey, "PewDiePie", defaultno)
-    akinator.addanswer(qkey, "Britney Spears", defaultno)
-    akinator.addanswer(qkey, "Leonardo DiCaprio", defaultno)
-    akinator.addanswer(qkey, "Gandalf", defaultyes)
-    akinator.addanswer(qkey, "Hillary Clinton", defaultmaybe)
-    akinator.addanswer(qkey, "Nelson Mandela", defaultmaybe)
-    akinator.addanswer(qkey, "Pythagoras", defaultyes)
-    akinator.addanswer(qkey, "Spiderman", defaultno)
-    akinator.addanswer(qkey, "Albert Einstein", defaultyes)
-    akinator.addanswer(qkey, "Marilyn Monroe", defaultmaybe)
-    akinator.addanswer(qkey, "Marie Curie", defaultyes)
-    akinator.addanswer(qkey, "J. K. Rowling", defaultyes)
-    akinator.addanswer(qkey, "Usain Bolt", defaultmaybe)
-    akinator.addanswer(qkey, "Bill Gates", defaultyes)
-    akinator.addanswer(qkey, "Elon Musk", defaultyes)
-    akinator.addanswer(qkey, "Julius Caesar", defaultmaybe)
-    akinator.addanswer(qkey, "Pacman", defaultno)
-    akinator.addanswer(qkey, "Snow White", defaultno)
-    akinator.addanswer(qkey, "Charlie from Charlie and the Chocolate Factory", defaultno)
-    
-    qkey = akinator.addquestion("Did they live in ancient times?")
-    akinator.addanswer(qkey, "Harry Potter", defaultno)
-    akinator.addanswer(qkey, "Donald Trump", defaultno)
-    akinator.addanswer(qkey, "Pikachu", defaultno)
-    akinator.addanswer(qkey, "Heidi", defaultno)
-    akinator.addanswer(qkey, "Popeye", defaultno)
-    akinator.addanswer(qkey, "Queen Victoria", defaultno)
-    akinator.addanswer(qkey, "PewDiePie", defaultno)
-    akinator.addanswer(qkey, "Britney Spears", defaultno)
-    akinator.addanswer(qkey, "Leonardo DiCaprio", defaultno)
-    akinator.addanswer(qkey, "Gandalf", defaultmaybe)
-    akinator.addanswer(qkey, "Hillary Clinton", defaultno)
-    akinator.addanswer(qkey, "Nelson Mandela", defaultno)
-    akinator.addanswer(qkey, "Pythagoras", defaultyes)
-    akinator.addanswer(qkey, "Spiderman", defaultno)
-    akinator.addanswer(qkey, "Albert Einstein", defaultno)
-    akinator.addanswer(qkey, "Marilyn Monroe", defaultno)
-    akinator.addanswer(qkey, "Marie Curie", defaultno)
-    akinator.addanswer(qkey, "J. K. Rowling", defaultno)
-    akinator.addanswer(qkey, "Usain Bolt", defaultno)
-    akinator.addanswer(qkey, "Bill Gates", defaultno)
-    akinator.addanswer(qkey, "Elon Musk", defaultno)
-    akinator.addanswer(qkey, "Julius Caesar", defaultyes)
-    akinator.addanswer(qkey, "Pacman", defaultno)
-    akinator.addanswer(qkey, "Snow White", defaultmaybe)
-    akinator.addanswer(qkey, "Charlie from Charlie and the Chocolate Factory", defaultno)
-    
-    qkey = akinator.addquestion("Are they a scientist or mathematician?")
-    akinator.addanswer(qkey, "Harry Potter", defaultno)
-    akinator.addanswer(qkey, "Donald Trump", defaultno)
-    akinator.addanswer(qkey, "Pikachu", defaultno)
-    akinator.addanswer(qkey, "Heidi", defaultno)
-    akinator.addanswer(qkey, "Popeye", defaultno)
-    akinator.addanswer(qkey, "Queen Victoria", defaultno)
-    akinator.addanswer(qkey, "PewDiePie", defaultno)
-    akinator.addanswer(qkey, "Britney Spears", defaultno)
-    akinator.addanswer(qkey, "Leonardo DiCaprio", defaultno)
-    akinator.addanswer(qkey, "Gandalf", defaultno)
-    akinator.addanswer(qkey, "Hillary Clinton", defaultno)
-    akinator.addanswer(qkey, "Nelson Mandela", defaultno)
-    akinator.addanswer(qkey, "Pythagoras", defaultyes)
-    akinator.addanswer(qkey, "Spiderman", defaultno)
-    akinator.addanswer(qkey, "Albert Einstein", defaultyes)
-    akinator.addanswer(qkey, "Marilyn Monroe", defaultno)
-    akinator.addanswer(qkey, "Marie Curie", defaultyes)
-    akinator.addanswer(qkey, "J. K. Rowling", defaultno)
-    akinator.addanswer(qkey, "Usain Bolt", defaultno)
-    akinator.addanswer(qkey, "Bill Gates", defaultmaybe)
-    akinator.addanswer(qkey, "Elon Musk", defaultmaybe)
-    akinator.addanswer(qkey, "Julius Caesar", defaultno)
-    akinator.addanswer(qkey, "Pacman", defaultno)
-    akinator.addanswer(qkey, "Snow White", defaultno)
-    akinator.addanswer(qkey, "Charlie from Charlie and the Chocolate Factory", defaultno)
-    
-    qkey = akinator.addquestion("Are they based on an animal?")
-    akinator.addanswer(qkey, "Harry Potter", defaultno)
-    akinator.addanswer(qkey, "Donald Trump", defaultno)
-    akinator.addanswer(qkey, "Pikachu", defaultyes)
-    akinator.addanswer(qkey, "Heidi", defaultno)
-    akinator.addanswer(qkey, "Popeye", defaultno)
-    akinator.addanswer(qkey, "Queen Victoria", defaultno)
-    akinator.addanswer(qkey, "PewDiePie", defaultno)
-    akinator.addanswer(qkey, "Britney Spears", defaultno)
-    akinator.addanswer(qkey, "Leonardo DiCaprio", defaultno)
-    akinator.addanswer(qkey, "Gandalf", defaultno)
-    akinator.addanswer(qkey, "Hillary Clinton", defaultno)
-    akinator.addanswer(qkey, "Nelson Mandela", defaultno)
-    akinator.addanswer(qkey, "Pythagoras", defaultno)
-    akinator.addanswer(qkey, "Spiderman", defaultyes)
-    akinator.addanswer(qkey, "Albert Einstein", defaultno)
-    akinator.addanswer(qkey, "Marilyn Monroe", defaultno)
-    akinator.addanswer(qkey, "Marie Curie", defaultno)
-    akinator.addanswer(qkey, "J. K. Rowling", defaultno)
-    akinator.addanswer(qkey, "Usain Bolt", defaultno)
-    akinator.addanswer(qkey, "Bill Gates", defaultno)
-    akinator.addanswer(qkey, "Elon Musk", defaultno)
-    akinator.addanswer(qkey, "Julius Caesar", defaultno)
-    akinator.addanswer(qkey, "Pacman", defaultno)
-    akinator.addanswer(qkey, "Snow White", defaultno)
-    akinator.addanswer(qkey, "Charlie from Charlie and the Chocolate Factory", defaultno)
-    
-    qkey = akinator.addquestion("Do they appear as a main state in a movie?")
-    akinator.addanswer(qkey, "Harry Potter", defaultyes)
-    akinator.addanswer(qkey, "Donald Trump", defaultno)
-    akinator.addanswer(qkey, "Pikachu", defaultyes)
-    akinator.addanswer(qkey, "Heidi", defaultyes)
-    akinator.addanswer(qkey, "Popeye", defaultyes)
-    akinator.addanswer(qkey, "Queen Victoria", defaultyes)
-    akinator.addanswer(qkey, "PewDiePie", defaultno)
-    akinator.addanswer(qkey, "Britney Spears", defaultno)
-    akinator.addanswer(qkey, "Leonardo DiCaprio", defaultyes)
-    akinator.addanswer(qkey, "Gandalf", defaultyes)
-    akinator.addanswer(qkey, "Hillary Clinton", defaultno)
-    akinator.addanswer(qkey, "Nelson Mandela", defaultyes)
-    akinator.addanswer(qkey, "Pythagoras", defaultno)
-    akinator.addanswer(qkey, "Spiderman", defaultyes)
-    akinator.addanswer(qkey, "Albert Einstein", defaultno)
-    akinator.addanswer(qkey, "Marilyn Monroe", defaultyes)
-    akinator.addanswer(qkey, "Marie Curie", defaultno)
-    akinator.addanswer(qkey, "J. K. Rowling", defaultno)
-    akinator.addanswer(qkey, "Usain Bolt", defaultno)
-    akinator.addanswer(qkey, "Bill Gates", defaultno)
-    akinator.addanswer(qkey, "Elon Musk", defaultno)
-    akinator.addanswer(qkey, "Julius Caesar", defaultyes)
-    akinator.addanswer(qkey, "Pacman", defaultno)
-    akinator.addanswer(qkey, "Snow White", defaultyes)
-    akinator.addanswer(qkey, "Charlie from Charlie and the Chocolate Factory", defaultyes)
-    
-    for (state,qkey) in akinator.answerdict:
-        if state not in akinator.states:
-            akinator.states.append(state)
-    akinator.numstates = len(akinator.states)
-    print("States: %d, questions %d" % (akinator.numstates, len(akinator.questions)))
-    
-    """
-    for state in states:
-        qkey = akinator.addquestion("Is your state %s?" % state)
-        for c in states:
-            akinator.answerdict[(c,qkey)] = [0.005, 0.005, 0.99]
-        akinator.answerdict[(state,qkey)] = [0.99, 0.005, 0.005] 
-    """
-    akinator.stateprobs = np.ones(shape=(akinator.numstates))/akinator.numstates
-    akinator.statelogprobs = np.ones(shape=(akinator.numstates))*-np.log(akinator.numstates)
-
-if __name__== "__main__":    
-    akinator = Akinator()
-    setup_character_akinator(akinator)
-    questionno = 1
-    while True:    
-        qkey = akinator.getnextquestion()
-        if qkey < 0:
-            break
-        akinator.usedquestions.append(qkey)
-        answer = input("Q%d: %s " % (questionno, akinator.questions[qkey])).upper()
-        akey = -1
-        if answer.startswith("Y"):
-            akey = YES
-        elif answer.startswith("M"):
-            akey = MAYBE
-        elif answer.startswith("N"):
-            akey = NO
-        else:
-            break
-        akinator.update(qkey, akey)
-        questionno += 1
 
