@@ -140,7 +140,6 @@ class WorldMapCanvas(FigureCanvas):
                  
         self.patchlistsbylocation = {}
         for info, shape in zip(self.map.comarques_info, self.map.comarques):
-            print(info)
             patch = Polygon(np.array(shape), True, edgecolor='black', linewidth=0.5,antialiased=True) # , facecolor='red'
             locationname = info['NAME_EN']
             patchlist = self.patchlistsbylocation.get(locationname, [])
@@ -150,7 +149,7 @@ class WorldMapCanvas(FigureCanvas):
             
         probabilities = np.random.dirichlet(np.full((len(self.patchlistsbylocation),), 0.05))
         for (prob,loc) in zip(probabilities, self.patchlistsbylocation.keys()):
-            self.setlocationcolour(loc, self.colormap(self.norm(prob)), drawimmediately=False)
+            self.setlocationcolourbyvalue(loc, prob, drawimmediately=False)
             
         #cax = fig.add_axes([0.2, 0.07, 0.6, 0.04])
         cax = fig.add_axes([0.2, 0.065, 0.6, 0.04])
@@ -178,12 +177,15 @@ class WorldMapCanvas(FigureCanvas):
         cb1.set_label('Estimated probability')
     
         self.draw()
+        
+    def setlocationcolourbyvalue(self, location, value, drawimmediately=True):
+        self.setlocationcolour(location, self.colormap(self.norm(value)), drawimmediately=drawimmediately)
 
     def setlocationcolour(self, location, color, drawimmediately=True):
         for patch in self.patchlistsbylocation[location]:
             patch.set_facecolor(color)
             if drawimmediately:
-                self.ax.draw_artist(patch)        
+                self.ax.draw_artist(patch)
         if drawimmediately:
             self.figure.canvas.blit(self.ax.bbox) # fast way of updating canvas
         #self.draw() # slow way of updating canvas
