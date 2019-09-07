@@ -6,6 +6,7 @@ from PyQt5.QtChart import *
 import numpy as np
 import sys
 import akinator_model
+import akinator_character_questionsanswers
 
 class MainWindow(QWidget):
     
@@ -13,7 +14,7 @@ class MainWindow(QWidget):
         super().__init__()
         
         self.model = akinator_model.Akinator()
-        akinator_model.setup_character_akinator(self.model)
+        akinator_character_questionsanswers.setup_character_akinator(self.model)
         self.qkey = self.model.getnextquestion()
         self.model.usedquestions.append(self.qkey)
         self.label = QLabel(self.model.questions[self.qkey])
@@ -40,17 +41,17 @@ class MainWindow(QWidget):
         layout.addWidget(self.label)
         
         yesbutton = QPushButton('Yes', self)
-        yesbutton.clicked.connect(lambda: self.handleButton(akinator_model.YES))
+        yesbutton.clicked.connect(lambda: self.handleButton(akinator_character_questionsanswers.YES))
         yesbutton.setToolTip('Yes')
         layout.addWidget(yesbutton)
         
         maybebutton = QPushButton('Maybe', self)
-        maybebutton.clicked.connect(lambda: self.handleButton(akinator_model.MAYBE))
+        maybebutton.clicked.connect(lambda: self.handleButton(akinator_character_questionsanswers.MAYBE))
         maybebutton.setToolTip('Maybe')
         layout.addWidget(maybebutton)
         
         nobutton = QPushButton('No', self)
-        nobutton.clicked.connect(lambda: self.handleButton(akinator_model.NO))
+        nobutton.clicked.connect(lambda: self.handleButton(akinator_character_questionsanswers.NO))
         nobutton.setToolTip('No')
         layout.addWidget(nobutton)
         

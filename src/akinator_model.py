@@ -89,6 +89,15 @@ class Akinator:
         self.statelogprobs = None
         self.usedquestions = []
         self.choosenextquestionfunc = choosenextquestionfunc
+    
+    def reset(self):        
+        for (state,qkey) in self.answerdict:
+            if state not in self.states:
+                self.states.append(state)
+        self.numstates = len(self.states)
+        print("States: %d, questions %d" % (self.numstates, len(self.questions)))
+        self.stateprobs = np.ones(shape=(self.numstates))/self.numstates
+        self.statelogprobs = np.ones(shape=(self.numstates))*-np.log(self.numstates)
         
     def addquestion(self, questiontext):
         qkey = len(self.questions)
@@ -104,7 +113,7 @@ class Akinator:
         
     
     def addanswer(self, qkey, statename, answervec):
-        """Set the (question,state) pair answer probability vector. The probabilities reflect how users are likely to answer the question about the particular state."""
+        """Set the (question,state) pair answer probability vector. The probabilities reflect how users are likely to answer the question about the particular state (excluding input noise)."""
         
         self.answerdict[(statename,qkey)] = answervec
     
