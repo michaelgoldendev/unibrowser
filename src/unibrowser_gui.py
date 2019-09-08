@@ -41,17 +41,17 @@ class MainWindow(QWidget):
         layout.addWidget(self.label)
         
         yesbutton = QPushButton('Yes', self)
-        yesbutton.clicked.connect(lambda: self.handleButton(akinator_geography_questionsanswers.YES))
+        yesbutton.clicked.connect(lambda: self.handleButton(akinator_model.DefaultResponse.YES))
         yesbutton.setToolTip('Yes')
         layout.addWidget(yesbutton)
         
-        maybebutton = QPushButton('Maybe', self)
-        maybebutton.clicked.connect(lambda: self.handleButton(akinator_geography_questionsanswers.MAYBE))
-        maybebutton.setToolTip('Maybe')
+        maybebutton = QPushButton('Don\'t know', self)
+        maybebutton.clicked.connect(lambda: self.handleButton(akinator_model.DefaultResponse.DONTKNOW))
+        maybebutton.setToolTip('Don\'t know')
         layout.addWidget(maybebutton)
         
         nobutton = QPushButton('No', self)
-        nobutton.clicked.connect(lambda: self.handleButton(akinator_geography_questionsanswers.NO))
+        nobutton.clicked.connect(lambda: self.handleButton(akinator_model.DefaultResponse.NO))
         nobutton.setToolTip('No')
         layout.addWidget(nobutton)
         

@@ -1,9 +1,4 @@
 import numpy as np
-
-answers = ["Yes", "Maybe", "No"]
-YES = 0
-MAYBE = 1
-NO = 2
         
 def setup_character_akinator(akinator):
     defaultyes = [0.90, 0.05, 0.05]

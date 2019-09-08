@@ -3,12 +3,6 @@ import akinator_model
 
 from mpl_toolkits.basemap import Basemap
 
-
-answers = ["Yes", "Maybe", "No"]
-YES = 0
-MAYBE = 1
-NO = 2
-        
 def setup_geography_akinator(akinator):
     defaultyes = [0.90, 0.05, 0.05]
     defaultmaybe = [0.2, 0.60, 0.2]

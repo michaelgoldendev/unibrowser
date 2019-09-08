@@ -15,11 +15,11 @@ if __name__== "__main__":
         answer = input("Q%d: %s " % (questionno, akinator.questions[qkey])).upper()
         akey = -1
         if answer.startswith("Y"):
-            akey = akinator_character_questionsanswers.YES
+            akey = akinator_model.DefaultResponse.YES
         elif answer.startswith("M"):
-            akey = akinator_character_questionsanswers.MAYBE
+            akey = akinator_model.DefaultResponse.MAYBE
         elif answer.startswith("N"):
-            akey = akinator_character_questionsanswers.NO
+            akey = akinator_model.DefaultResponse.NO
         else:
             break
         akinator.update(qkey, akey)

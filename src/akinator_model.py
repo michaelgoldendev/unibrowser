@@ -78,9 +78,16 @@ def nextquestion_maxprob(akinator, verbose=False):
             index = qkey 
     return index
 
+from enum import IntEnum
+class DefaultResponse(IntEnum):
+    YES = 0
+    DONTKNOW = 1
+    NO = 2
+    
+
 class Akinator:
-    def __init__(self, answerdim=3, choosenextquestionfunc=nextquestion_entropy):
-        self.answerdim = answerdim
+    def __init__(self, responseenum=DefaultResponse, choosenextquestionfunc=nextquestion_entropy):
+        self.answerdim = len(responseenum)
         self.questions = []
         self.answerdict = {}
         self.states = []
@@ -88,6 +95,8 @@ class Akinator:
         self.stateprobs = None
         self.statelogprobs = None
         self.usedquestions = []
+        
+        self.responseenum = responseenum
         self.choosenextquestionfunc = choosenextquestionfunc
     
     def reset(self):        
