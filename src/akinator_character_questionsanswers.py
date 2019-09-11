@@ -545,5 +545,3 @@ def setup_character_akinator(akinator):
     akinator.addanswer(qkey, "Pacman", defaultno)
     akinator.addanswer(qkey, "Snow White", defaultyes)
     akinator.addanswer(qkey, "Charlie Bucket", defaultyes)
-    
-    akinator.reset()

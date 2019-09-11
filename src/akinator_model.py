@@ -24,7 +24,7 @@ def nextquestion_entropy(akinator, verbose=False):
             for (logp,p) in zip(tempstatelogprobs, tempstateprobs):
                 entropy += -p*logp
             for ckey in range(akinator.numstates):
-                statequestionkey = (akinator.states[ckey],qkey)
+                statequestionkey = (akinator.statelist[ckey],qkey)
                 condanswerprob = 1.0/akinator.answerdim # use a flat answer prior if this state doesn't have this question
                 if statequestionkey in akinator.answerdict:
                     condanswerprob = akinator.answerdict[statequestionkey][akey]
@@ -60,7 +60,7 @@ def nextquestion_maxprob(akinator, verbose=False):
             
             maxstateprob = np.max(tempstateprobs)
             for ckey in range(akinator.numstates):
-                statequestionkey = (akinator.states[ckey],qkey)
+                statequestionkey = (akinator.statelist[ckey],qkey)
                 condanswerprob = 1.0/akinator.answerdim # use a flat answer prior if this state doesn't have this question
                 if statequestionkey in akinator.answerdict:
                     condanswerprob = akinator.answerdict[statequestionkey][akey]
@@ -86,11 +86,15 @@ class DefaultResponse(IntEnum):
     
 
 class Akinator:
+    """A class representing states (e.g. character, country, object, etc.) and questions and expected answers associated with those states. Also contains a probabilistic model that attempts to guess the user's chosen state based on their responses to questions."""
+    
     def __init__(self, responseenum=DefaultResponse, choosenextquestionfunc=nextquestion_entropy):
         self.answerdim = len(responseenum)
         self.questions = []
+        self.questiontokeymapping = {}
         self.answerdict = {}
-        self.states = []
+        self.statelist = []
+        self.stateset = set()
         self.numstates = 0        
         self.stateprobs = None
         self.statelogprobs = None
@@ -99,40 +103,79 @@ class Akinator:
         self.responseenum = responseenum
         self.choosenextquestionfunc = choosenextquestionfunc
     
-    def reset(self):        
-        for (state,qkey) in self.answerdict:
-            if state not in self.states:
-                self.states.append(state)
-        self.numstates = len(self.states)
+    def __reset(self):        
+        """Helper method that resets the size of the state probability vectors. Used when a state is added to the model"""
+        
+        self.numstates = len(self.statelist)
         print("States: %d, questions %d" % (self.numstates, len(self.questions)))
         self.stateprobs = np.ones(shape=(self.numstates))/self.numstates
         self.statelogprobs = np.ones(shape=(self.numstates))*-np.log(self.numstates)
         
     def addquestion(self, questiontext):
-        qkey = len(self.questions)
-        if questiontext not in self.questions:
+        """Add a question to the model,
+        
+        Parameters:
+            questiontext(string): the text of the question to be added.
+            
+        Returns:
+            int: a question key that is unique to the question text."
+        """        
+        
+        if questiontext not in self.questiontokeymapping:
+            qkey = len(self.questions)
             self.questions.append(questiontext)
+            self.questiontokeymapping[questiontext] = qkey
+            return qkey
         else:
-            qkey = self.questions.index(questiontext)
-        return qkey
+            return self.questiontokeymapping[questiontext]
     
     def addquestionanswer(self, questiontext, statename, answervec):
+        """Add a question and a corresponding answer to the model for a particular state
+        
+        Parameters:
+            questiontext(string): the text of the question to be added.
+            statename(string): the name of state to which the answer refers
+            answervec(ndarray): a probability vector representing how a typical user is likely to answer this question.
+        
+        """
+        
         qkey = self.addquestion(questiontext)
         self.addanswer(qkey, statename, answervec)
         
     
     def addanswer(self, qkey, statename, answervec):
-        """Set the (question,state) pair answer probability vector. The probabilities reflect how users are likely to answer the question about the particular state (excluding input noise)."""
+        """Set the (question key,state) pair answer probability vector. The probabilities reflect how users are likely to answer a question about a particular state. The answer probabilities should exclude input noise (keyboard/mouse/EEG errors).
         
+         Parameters:
+            qkey (int): the question key.
+            statename(string): the name of state to which the answer refers
+            answervec(ndarray): a probability vector representing how a typical user is likely to answer this question.        
+         """
+        
+        if statename not in self.stateset:
+            self.statelist.append(statename)
+            self.stateset.add(statename)
+            self.__reset()
         self.answerdict[(statename,qkey)] = answervec
     
-    def update(self, qkey, akey):
+    def bayesianupdate_discreteanswer(self, qkey, akey):
+        """Updates the state probability vector based on the user's answer to the given question.
+        
+        Parameters:
+            qkey (int): the question key.
+            akey (int): the users answer in the form of a discrete integer representing the user's answer (for example: 0. yes, 1. don't know, 2. no) with no input noise.
+        
+        Returns:
+            int: the question key.
+        
+        """
+     
         avec = np.zeros(3)
         avec[akey] = 1.0 # create an answer probability vector with no input noise
-        self.update_helper(qkey, avec)
+        self.bayesianupdate_probanswer(qkey, avec)
     
-    def update_helper(self, qkey, avec):
-        """Updates the state probability vector based on the user's answer.
+    def bayesianupdate_probanswer(self, qkey, avec):
+        """Updates the state probability vector based on the user's answer to the given question.
         
         Parameters:
             qkey (int): the question key.
@@ -144,7 +187,7 @@ class Akinator:
         """
         
         self.statelogprobs, self.stateprobs = self.calculate_state_probs(self.statelogprobs, self.stateprobs, qkey, avec)
-        sortedstates = [(p, state) for (p, state)  in zip(self.stateprobs,self.states)]
+        sortedstates = [(p, state) for (p, state)  in zip(self.stateprobs,self.statelist)]
         sortedstates.sort()
         for (p, state) in sortedstates:
             print(" %s: %0.6f" % (state,p))
@@ -152,11 +195,16 @@ class Akinator:
         print(np.sum(self.stateprobs))
         print("------------------------------")
         
-    def calculate_state_probs(self, statelogprobs, stateprobs, qkey, avec):        
+    def calculate_state_probs(self, statelogprobs, stateprobs, qkey, avec):
+        """Helper method that performs the Bayesian update using probabilities in log-space to avoid precision errors.
+        
+        Returns:
+            tuple: a log probability vector and a probability vector representing the model's guess of the user's chosen state. 
+        """
         hasquestionlogsum = -np.inf
         noquestionlogsum = -np.inf
         for ckey in range(self.numstates):
-            statequestionkey = (self.states[ckey],qkey)
+            statequestionkey = (self.statelist[ckey],qkey)
             if statequestionkey in self.answerdict:
                 likelihood = np.dot(self.answerdict[statequestionkey],avec)            
                 v = np.log(likelihood) + statelogprobs[ckey]
@@ -164,14 +212,14 @@ class Akinator:
                 hasquestionlogsum = np.logaddexp(hasquestionlogsum, v)
             else:
                 noquestionlogsum = np.logaddexp(noquestionlogsum, statelogprobs[ckey])
-                print("No question for state %s" % self.states[ckey])
+                print("No question for state %s" % self.statelist[ckey])
         
         
         logsum = -np.inf # variable for accumulating normalisation constant
         # if one or more states don't have a particular question, keep their marginal probability the same by multiplying the states with the question by the following quantity:
         hasquestionmultiplier = np.log(1.0 - np.exp(noquestionlogsum))
         for ckey in range(self.numstates):
-            statequestionkey = (self.states[ckey],qkey)
+            statequestionkey = (self.statelist[ckey],qkey)
             if statequestionkey in self.answerdict:
                 statelogprobs[ckey] += hasquestionmultiplier-hasquestionlogsum           
             logsum = np.logaddexp(logsum, statelogprobs[ckey]) # normalisation constant

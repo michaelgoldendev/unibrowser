@@ -22,6 +22,6 @@ if __name__== "__main__":
             akey = akinator_model.DefaultResponse.NO
         else:
             break
-        akinator.update(qkey, akey)
+        akinator.bayesianupdate_discreteanswer(qkey, akey)
         questionno += 1
 

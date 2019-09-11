@@ -59,7 +59,7 @@ class MainWindow(QWidget):
         self.show()
         
     def handleButton(self, answer):
-        self.model.update(self.qkey, answer)
+        self.model.bayesianupdate_discreteanswer(self.qkey, answer)
         self.qkey = self.model.getnextquestion()
         if self.qkey >= 0:
             self.model.usedquestions.append(self.qkey)
@@ -69,7 +69,7 @@ class MainWindow(QWidget):
             exit()
             
     def updateWorldMap(self, akinator):
-        for (state,prob) in zip(akinator.states, akinator.stateprobs):
+        for (state,prob) in zip(akinator.statelist, akinator.stateprobs):
             self.worldmapwindow.canvas.setlocationcolourbyvalue(state,prob,drawimmediately=False)
         self.worldmapwindow.canvas.draw()
             

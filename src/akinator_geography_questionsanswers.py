@@ -77,10 +77,3 @@ def setup_geography_akinator(akinator):
             akinator.addanswer(qkey, info['NAME_EN'], defaultyes)
         else:
             akinator.addanswer(qkey, info['NAME_EN'], defaultno)
-        
-    akinator.reset()
-    
-        
-model = akinator_model.Akinator()        
-setup_geography_akinator(model)
-#print(model.answerdict)
