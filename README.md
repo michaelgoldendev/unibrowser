@@ -10,3 +10,9 @@
     ```console
     conda install numpy pyqt basemap
     ```
+
+## Usage
+To launch the Unibrowser GUI enter the following command:
+```console
+    python unibrowser_gui.py
+```
