@@ -1,3 +1,11 @@
+"""
+A module containing different functions for choosing the next question. 
+
+These functions typically use the state of akinator model to choose the next question.
+
+The goal ofm a question picker function is typically to minimise the number of questions to be asked before returning the correct prediction of the user's chosen state.
+"""
+
 import numpy as np
 
 def nextquestion_entropy(akinator, verbose=False):
@@ -14,7 +22,7 @@ def nextquestion_entropy(akinator, verbose=False):
         for akey in range(akinator.answerdim):
             avec = np.zeros(3)
             avec[akey] = 1.0 # create an answer probability vector with no input noise
-            tempstatelogprobs,tempstateprobs = akinator.calculate_state_probs(np.copy(akinator.statelogprobs), np.copy(akinator.stateprobs), qkey, avec)
+            tempstatelogprobs,tempstateprobs = akinator.calculate_state_probs(np.copy(akinator.statelogprobs), np.copy(akinator.stateprobs), qkey, avec) # copy's ensure that the akinator model is not updated
             
             entropy = 0.0
             for (logp,p) in zip(tempstatelogprobs, tempstateprobs):
@@ -52,7 +60,7 @@ def nextquestion_maxprob(akinator, verbose=False):
         for akey in range(akinator.answerdim):
             avec = np.zeros(3)
             avec[akey] = 1.0 # create an answer probability vector with no input noise
-            tempstatelogprobs,tempstateprobs = akinator.calculate_state_probs(np.copy(akinator.statelogprobs), np.copy(akinator.stateprobs), qkey, avec)
+            tempstatelogprobs,tempstateprobs = akinator.calculate_state_probs(np.copy(akinator.statelogprobs), np.copy(akinator.stateprobs), qkey, avec) # copy's ensure that the akinator model is not updated
             
             maxstateprob = np.max(tempstateprobs)
             for ckey in range(akinator.numstates):

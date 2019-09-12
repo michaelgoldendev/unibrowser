@@ -31,26 +31,34 @@ class MainWindow(QWidget):
         
         layout = QVBoxLayout()
         
-        font = QFont()
-        font.setPointSize(18)
-        font.setBold(True)
-        font.setWeight(75)
+        questionfont = QFont()
+        questionfont.setPointSize(18)
+        questionfont.setBold(True)
+        questionfont.setWeight(75)
         
-        self.label.setFont(font)
+        self.label.setFont(questionfont)
         self.label.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.label)
         
+        answerbuttonfont = QFont()
+        answerbuttonfont.setPointSize(14)
+        answerbuttonfont.setBold(True)
+        #answerbuttonfont.setWeight(75)
+        
         yesbutton = QPushButton('Yes', self)
+        yesbutton.setFont(answerbuttonfont)
         yesbutton.clicked.connect(lambda: self.handleButton(akinator_model.DefaultResponse.YES))
         yesbutton.setToolTip('Yes')
         layout.addWidget(yesbutton)
         
         maybebutton = QPushButton('Don\'t know', self)
+        maybebutton.setFont(answerbuttonfont)
         maybebutton.clicked.connect(lambda: self.handleButton(akinator_model.DefaultResponse.DONTKNOW))
         maybebutton.setToolTip('Don\'t know')
         layout.addWidget(maybebutton)
         
         nobutton = QPushButton('No', self)
+        nobutton.setFont(answerbuttonfont)
         nobutton.clicked.connect(lambda: self.handleButton(akinator_model.DefaultResponse.NO))
         nobutton.setToolTip('No')
         layout.addWidget(nobutton)

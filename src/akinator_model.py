@@ -13,9 +13,16 @@ class DefaultResponse(IntEnum):
     
 
 class Akinator:
-    """A class representing states (e.g. character, country, object, etc.) and questions and expected answers associated with those states. Also contains a probabilistic model that attempts to guess the user's chosen state based on their responses to questions."""
+    """A class representing states (e.g. character, country, object, etc.) together with questions and expected answers about those states. Also contains a probabilistic model that attempts to guess the user's chosen state based on the user's responses to questions."""
     
     def __init__(self, responseenum=DefaultResponse, choosenextquestionfunc=akinator_questionpicker.nextquestion_entropy):
+        """Initialiser
+        
+        Parameters:
+            responseenum(IntEnum): an enumeration listing the possible user responses.
+            choosenextquestionfunc(function): a function for choosing the next question based on the model's current probabilities.
+        """
+        
         self.answerdim = len(responseenum)
         self.questions = []
         self.questiontokeymapping = {}
@@ -42,7 +49,7 @@ class Akinator:
         """Add a question to the model,
         
         Parameters:
-            questiontext(string): the text of the question to be added.
+            questiontext(str): the text of the question to be added.
             
         Returns:
             int: a question key that is unique to the question text."
@@ -60,8 +67,8 @@ class Akinator:
         """Add a question and a corresponding answer to the model for a particular state
         
         Parameters:
-            questiontext(string): the text of the question to be added.
-            statename(string): the name of state to which the answer refers
+            questiontext(str): the text of the question to be added.
+            statename(str): the name of state to which the answer refers
             answervec(ndarray): a probability vector representing how a typical user is likely to answer this question.
         
         """
@@ -75,7 +82,7 @@ class Akinator:
         
          Parameters:
             qkey (int): the question key.
-            statename(string): the name of state to which the answer refers
+            statename(str): the name of state to which the answer refers
             answervec(ndarray): a probability vector representing how a typical user is likely to answer this question.        
          """
         
@@ -123,7 +130,7 @@ class Akinator:
         print("------------------------------")
         
     def calculate_state_probs(self, statelogprobs, stateprobs, qkey, avec):
-        """Helper method that performs the Bayesian update using probabilities in log-space to avoid precision errors.
+        """Helper method that performs the Bayesian update with probabilities calculated in log-space to avoid numerical precision errors.
         
         Returns:
             tuple: a log probability vector and a probability vector representing the model's guess of the user's chosen state. 
@@ -143,7 +150,7 @@ class Akinator:
         
         
         logsum = -np.inf # variable for accumulating normalisation constant
-        # if one or more states don't have a particular question, keep their marginal probability the same by multiplying the states with the question by the following quantity:
+        # if one or more states don't have a particular question, keep their marginal probability the same when performing this update:
         hasquestionmultiplier = np.log(1.0 - np.exp(noquestionlogsum))
         for ckey in range(self.numstates):
             statequestionkey = (self.statelist[ckey],qkey)
