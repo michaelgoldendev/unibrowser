@@ -1,4 +1,5 @@
 import numpy as np
+import map_info
 import akinator_model
 
 from mpl_toolkits.basemap import Basemap
@@ -8,30 +9,21 @@ def setup_geography_akinator(akinator):
     defaultmaybe = [0.2, 0.60, 0.2]
     defaultno = [0.05, 0.05, 0.90]
     
-    map = Basemap(projection='mill',lon_0=0,llcrnrlat=-75,urcrnrlat=85,llcrnrlon=-180,urcrnrlon=180)
-    map.readshapefile('../shape_files/ne_10m_admin_0_countries/ne_10m_admin_0_countries', 'comarques', drawbounds = False, antialiased=True)
+    mapinfo = map_info.MapInfo()
     
-    """
-    for info, shape in zip(map.comarques_info, map.comarques):
-        print(info,shape)
-    """
-    """
-    incomelabels = []
-    for info, shape in zip(map.comarques_info, map.comarques):
-        if info['INCOME_GRP'] not in incomelabels:
-            incomelabels.append(info['INCOME_GRP'])
-    print(incomelabels)
-    """
+    map = mapinfo.map
     
     qkey = akinator.addquestion('Is this location considered a high income country?')
-    for info, shape in zip(map.comarques_info, map.comarques):
+    for countryname in mapinfo.infobycountryname:
+        info = mapinfo.infobycountryname[countryname]
         if info['INCOME_GRP'].startswith("1.") or info['INCOME_GRP'].startswith("2."):
-            akinator.addanswer(qkey, info['NAME_EN'], defaultyes)
+            akinator.addanswer(qkey, countryname, defaultyes)
         else:
-            akinator.addanswer(qkey, info['NAME_EN'], defaultno)
+            akinator.addanswer(qkey, countryname, defaultno)
     
     qkey = akinator.addquestion('Is this location considered a low income country?')
-    for info, shape in zip(map.comarques_info, map.comarques):
+    for countryname in mapinfo.infobycountryname:
+        info = mapinfo.infobycountryname[countryname]
         if info['INCOME_GRP'].startswith("4.") or info['INCOME_GRP'].startswith("5."):
             akinator.addanswer(qkey, info['NAME_EN'], defaultyes)
         else:
@@ -44,35 +36,40 @@ def setup_geography_akinator(akinator):
     # is you country in X continent?
     for continent in continents:
         qkey = akinator.addquestion('Is your location in %s?' % continent)
-        for info, shape in zip(map.comarques_info, map.comarques):
+        for countryname in mapinfo.infobycountryname:
+            info = mapinfo.infobycountryname[countryname]
             if info['CONTINENT'] == continent:
                 akinator.addanswer(qkey, info['NAME_EN'], defaultyes)
             else:
                 akinator.addanswer(qkey, info['NAME_EN'], defaultno)
                 
     qkey = akinator.addquestion('Is the population smaller than 1,000,000?')
-    for info, shape in zip(map.comarques_info, map.comarques):
+    for countryname in mapinfo.infobycountryname:
+        info = mapinfo.infobycountryname[countryname]
         if info['POP_EST'] < 1000000:
             akinator.addanswer(qkey, info['NAME_EN'], defaultyes)
         else:
             akinator.addanswer(qkey, info['NAME_EN'], defaultno)
     
     qkey = akinator.addquestion('Is the population smaller than 10,000,000?')
-    for info, shape in zip(map.comarques_info, map.comarques):
+    for countryname in mapinfo.infobycountryname:
+        info = mapinfo.infobycountryname[countryname]
         if info['POP_EST'] < 10000000:
             akinator.addanswer(qkey, info['NAME_EN'], defaultyes)
         else:
             akinator.addanswer(qkey, info['NAME_EN'], defaultno)
             
     qkey = akinator.addquestion('Is the population larger than 50,000,000?')
-    for info, shape in zip(map.comarques_info, map.comarques):
+    for countryname in mapinfo.infobycountryname:
+        info = mapinfo.infobycountryname[countryname]
         if info['POP_EST'] >= 50000000:
             akinator.addanswer(qkey, info['NAME_EN'], defaultyes)
         else:
             akinator.addanswer(qkey, info['NAME_EN'], defaultno)
     
     qkey = akinator.addquestion('Is the population larger than 100,000,000?')
-    for info, shape in zip(map.comarques_info, map.comarques):
+    for countryname in mapinfo.infobycountryname:
+        info = mapinfo.infobycountryname[countryname]
         if info['POP_EST'] >= 100000000:
             akinator.addanswer(qkey, info['NAME_EN'], defaultyes)
         else:

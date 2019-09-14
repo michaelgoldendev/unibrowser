@@ -18,6 +18,7 @@ import matplotlib.animation as animation
 
 import numpy as np
 import random
+import map_info
 
 class UnicornIcon(QLabel):
     
@@ -132,22 +133,25 @@ class WorldMapCanvas(FigureCanvas):
         self.oceancolor = '#bff2ff'
         fig.patch.set_facecolor('white')
         
+        self.mapinfo = map_info.MapInfo()
+        
         # possible projections: mill, robin, merc
-        self.map = Basemap(projection='mill',lon_0=0,llcrnrlat=-75,urcrnrlat=85,llcrnrlon=-180,urcrnrlon=180)
+        self.map = self.mapinfo.map
         self.map.drawmapboundary(fill_color=self.oceancolor)
         #self.map.fillcontinents(color='#ddaa66')
-        self.map.readshapefile('../shape_files/ne_10m_admin_0_countries/ne_10m_admin_0_countries', 'comarques', drawbounds = False, antialiased=True)
+        #self.map.readshapefile('../shape_files/ne_10m_admin_0_countries/ne_10m_admin_0_countries', 'comarques', drawbounds = False, antialiased=True)
                  
         self.patchlistsbylocation = {}
-        for info, shape in zip(self.map.comarques_info, self.map.comarques):
-            patch = Polygon(np.array(shape), True, edgecolor='black', linewidth=0.5,antialiased=True) # , facecolor='red'
-            locationname = info['NAME_EN']
-            patchlist = self.patchlistsbylocation.get(locationname, [])
-            patchlist.append(patch)
-            self.patchlistsbylocation[locationname] = patchlist
-            self.ax.add_patch(patch)
+        for locationname in self.mapinfo.shapelistbycountryname:
+            for shape in self.mapinfo.shapelistbycountryname[locationname]:
+                patch = Polygon(np.array(shape), True, edgecolor='black', linewidth=0.5,antialiased=True)
+                patchlist = self.patchlistsbylocation.get(locationname, [])
+                patchlist.append(patch)
+                self.patchlistsbylocation[locationname] = patchlist
+                self.ax.add_patch(patch)
             
-        probabilities = np.random.dirichlet(np.full((len(self.patchlistsbylocation),), 0.05))
+        #probabilities = np.random.dirichlet(np.full((len(self.patchlistsbylocation),), 0.05))
+        probabilities = np.ones(len(self.patchlistsbylocation))*1e-100
         for (prob,loc) in zip(probabilities, self.patchlistsbylocation.keys()):
             self.setlocationcolourbyvalue(loc, prob, drawimmediately=False)
             

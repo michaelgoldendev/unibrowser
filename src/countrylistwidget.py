@@ -10,6 +10,8 @@ import matplotlib.cm
 import matplotlib as mpl
 import matplotlib.colors
 
+import map_info
+
 class QCustomWidget (QWidget):
     def __init__ (self, parent = None):
         super(QCustomWidget, self).__init__(parent)
@@ -41,17 +43,17 @@ class exampleQMainWindow (QMainWindow):
         super(exampleQMainWindow, self).__init__()
         
         colormap = matplotlib.cm.inferno #matplotlib.cm.get_cmap('Spectral')
-        norm = mpl.colors.LogNorm(vmin=1e-3, vmax=1.0,clip=True) # mpl.colors.Normalize(vmin=0.0, vmax=1.0)       
+        norm = mpl.colors.LogNorm(vmin=1e-3, vmax=1.0,clip=True) # mpl.colors.Normalize(vmin=0.0, vmax=1.0)    
         
-        flagdir = '../images/flags-normal/'
-        flagfiles = os.listdir(flagdir)
+        mapinfo = map_info.MapInfo()
+        
         
         countrylist = []
-        for (index, flagfile) in enumerate(flagfiles):
-            flagpath = os.path.join(flagdir, flagfile)
-            v = index/len(flagfiles)
+        for (index, (countryname, countrycode)) in enumerate(zip(mapinfo.locationlist, mapinfo.twolettercountrycodelist)):
+            flagpath = mapinfo.twolettercountrycode_to_flagnormalpngfile[countrycode]
+            v = (index+1e-5)/len(mapinfo.locationlist)
             colorstring = matplotlib.colors.to_hex(colormap(norm(v)))
-            countrylist.append((QPixmap(flagpath), 'South Africa', colorstring))
+            countrylist.append((QPixmap(flagpath), countryname, colorstring))
         
         
         # Create QListWidget
@@ -64,13 +66,10 @@ class exampleQMainWindow (QMainWindow):
             customwidget.iconlabel.setFixedWidth(85)
             
             customwidget.countrylabel.setText(country)
-            #customwidget.countrylabel.resize(QSize(200, customwidget.countrylabel.height()))
-            customwidget.countrylabel.setFixedWidth(250)
+            customwidget.countrylabel.setFixedWidth(350)
             customwidget.colourlabel.setStyleSheet("background-color:" + color +";")
             customwidget.colourlabel.setFixedWidth(10)
             
-            #customitem.setIcon(icon)
-            # Create QListWidgetItem
             customitem = QListWidgetItem(self.listwidget)
             customitem.setSizeHint(customwidget.sizeHint())
             
