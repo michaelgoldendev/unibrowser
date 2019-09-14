@@ -43,8 +43,9 @@ class UnicornIcon(QLabel):
 
 class WorldMapWindow(QWidget):
 
-    def __init__(self):
+    def __init__(self, mapinfo):
         super().__init__()
+        self.mapinfo = mapinfo
         self.left = 0
         self.top = 0
         self.title = 'Unibrowser- World Map'
@@ -56,7 +57,7 @@ class WorldMapWindow(QWidget):
         self.setGeometry(self.left, self.top, self.width, self.height)
         
         layout = QVBoxLayout()
-        self.canvas =  WorldMapCanvas(self, width=9, height=7.5) # width and height params don't have any effect when using a layout.
+        self.canvas =  WorldMapCanvas(self.mapinfo, parent=self, width=9, height=7.5) # width and height params don't have any effect when using a layout.
         layout.addWidget(self.canvas)
         
         #self.canvas.move(10,10)                
@@ -114,7 +115,8 @@ class WorldMapWindow(QWidget):
 
 class WorldMapCanvas(FigureCanvas):
 
-    def __init__(self, parent=None, width=10, height=8, dpi=None):
+    def __init__(self, mapinfo, parent=None, width=10, height=8, dpi=None):
+        self.mapinfo = mapinfo
         fig = plt.figure(figsize=(width,height))        
         #plt.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.01)
         plt.subplots_adjust(left=0.01, right=0.99, top=1.0, bottom=0.0)
@@ -132,8 +134,6 @@ class WorldMapCanvas(FigureCanvas):
         self.norm = mpl.colors.LogNorm(vmin=1e-3, vmax=1.0,clip=True) # mpl.colors.Normalize(vmin=0.0, vmax=1.0)       
         self.oceancolor = '#bff2ff'
         fig.patch.set_facecolor('white')
-        
-        self.mapinfo = map_info.MapInfo()
         
         # possible projections: mill, robin, merc
         self.map = self.mapinfo.map

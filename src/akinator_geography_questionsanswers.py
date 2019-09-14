@@ -1,17 +1,12 @@
 import numpy as np
 import map_info
-import akinator_model
 
 from mpl_toolkits.basemap import Basemap
 
-def setup_geography_akinator(akinator):
+def setup_geography_akinator(akinator, mapinfo):
     defaultyes = [0.90, 0.05, 0.05]
     defaultmaybe = [0.2, 0.60, 0.2]
     defaultno = [0.05, 0.05, 0.90]
-    
-    mapinfo = map_info.MapInfo()
-    
-    map = mapinfo.map
     
     qkey = akinator.addquestion('Is this location considered a high income country?')
     for countryname in mapinfo.infobycountryname:

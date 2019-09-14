@@ -8,19 +8,22 @@ import sys
 import akinator_model
 import akinator_geography_questionsanswers
 import worldmap
+import map_info
 
 class MainWindow(QWidget):
     
     def __init__(self):
         super().__init__()
         
+        self.mapinfo = map_info.MapInfo()
+        
         self.model = akinator_model.Akinator()
-        akinator_geography_questionsanswers.setup_geography_akinator(self.model)
+        akinator_geography_questionsanswers.setup_geography_akinator(self.model, self.mapinfo)
         self.qkey = self.model.getnextquestion()
         self.model.usedquestions.append(self.qkey)
         self.label = QLabel(self.model.questions[self.qkey])
         
-        self.worldmapwindow = worldmap.WorldMapWindow()
+        self.worldmapwindow = worldmap.WorldMapWindow(self.mapinfo)
         self.updateWorldMap(self.model)
         self.initUI()
         
