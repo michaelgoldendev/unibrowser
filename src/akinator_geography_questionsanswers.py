@@ -20,9 +20,9 @@ def setup_geography_akinator(akinator, mapinfo):
     for countryname in mapinfo.infobycountryname:
         info = mapinfo.infobycountryname[countryname]
         if info['INCOME_GRP'].startswith("4.") or info['INCOME_GRP'].startswith("5."):
-            akinator.addanswer(qkey, info['NAME_EN'], defaultyes)
+            akinator.addanswer(qkey, countryname, defaultyes)
         else:
-            akinator.addanswer(qkey, info['NAME_EN'], defaultno)
+            akinator.addanswer(qkey, countryname, defaultno)
     
         
     continents = ['Asia', 'South America', 'Africa', 'Europe', 'North America', 'Oceania', 'Antarctica']
@@ -34,38 +34,50 @@ def setup_geography_akinator(akinator, mapinfo):
         for countryname in mapinfo.infobycountryname:
             info = mapinfo.infobycountryname[countryname]
             if info['CONTINENT'] == continent:
-                akinator.addanswer(qkey, info['NAME_EN'], defaultyes)
+                akinator.addanswer(qkey, countryname, defaultyes)
             else:
-                akinator.addanswer(qkey, info['NAME_EN'], defaultno)
+                akinator.addanswer(qkey, countryname, defaultno)
                 
     qkey = akinator.addquestion('Is the population smaller than 1,000,000?')
     for countryname in mapinfo.infobycountryname:
         info = mapinfo.infobycountryname[countryname]
         if info['POP_EST'] < 1000000:
-            akinator.addanswer(qkey, info['NAME_EN'], defaultyes)
+            akinator.addanswer(qkey, countryname, defaultyes)
         else:
-            akinator.addanswer(qkey, info['NAME_EN'], defaultno)
+            akinator.addanswer(qkey, countryname, defaultno)
     
     qkey = akinator.addquestion('Is the population smaller than 10,000,000?')
     for countryname in mapinfo.infobycountryname:
         info = mapinfo.infobycountryname[countryname]
         if info['POP_EST'] < 10000000:
-            akinator.addanswer(qkey, info['NAME_EN'], defaultyes)
+            akinator.addanswer(qkey, countryname, defaultyes)
         else:
-            akinator.addanswer(qkey, info['NAME_EN'], defaultno)
+            akinator.addanswer(qkey, countryname, defaultno)
             
     qkey = akinator.addquestion('Is the population larger than 50,000,000?')
     for countryname in mapinfo.infobycountryname:
         info = mapinfo.infobycountryname[countryname]
         if info['POP_EST'] >= 50000000:
-            akinator.addanswer(qkey, info['NAME_EN'], defaultyes)
+            akinator.addanswer(qkey, countryname, defaultyes)
         else:
-            akinator.addanswer(qkey, info['NAME_EN'], defaultno)
+            akinator.addanswer(qkey, countryname, defaultno)
     
     qkey = akinator.addquestion('Is the population larger than 100,000,000?')
     for countryname in mapinfo.infobycountryname:
         info = mapinfo.infobycountryname[countryname]
         if info['POP_EST'] >= 100000000:
-            akinator.addanswer(qkey, info['NAME_EN'], defaultyes)
+            akinator.addanswer(qkey, countryname, defaultyes)
         else:
-            akinator.addanswer(qkey, info['NAME_EN'], defaultno)
+            akinator.addanswer(qkey, countryname, defaultno)
+    
+
+    for countryname in mapinfo.infobycountryname:
+        qkey = akinator.addquestion('Is your location %s?' % countryname)
+        for countryname_secondary in mapinfo.infobycountryname:
+            if countryname == countryname_secondary:
+                akinator.addanswer(qkey, countryname_secondary, [0.98, 0.01, 0.01])
+            else:
+                akinator.addanswer(qkey, countryname_secondary, [0.01, 0.01, 0.99])
+                    
+        
+            

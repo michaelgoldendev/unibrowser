@@ -46,7 +46,6 @@ class MapInfo():
             self.shapelistbycountryname[locationname] = shapelistbylocation
             self.infobycountryname[locationname] = info
             
-        print(self.locationlist)
         self.twolettercountrycode_to_flagnormalpngfile = {}
         
         for (index, flagfile) in enumerate(os.listdir(flagdir)):
