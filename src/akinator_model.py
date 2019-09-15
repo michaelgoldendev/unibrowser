@@ -130,8 +130,8 @@ class Akinator:
         sortedstates.sort()
         for (p, state) in sortedstates:
             print(" %s: %0.6f" % (state,p))
-        print(self.statelogprobs)
-        print(np.sum(self.stateprobs))
+        #print(self.statelogprobs)
+        #print(np.sum(self.stateprobs))
         print("------------------------------")
         
     def calculate_state_probs(self, statelogprobs, stateprobs, qkey, avec):
@@ -151,7 +151,7 @@ class Akinator:
                 hasquestionlogsum = np.logaddexp(hasquestionlogsum, v)
             else:
                 noquestionlogsum = np.logaddexp(noquestionlogsum, statelogprobs[ckey])
-                print("No question for state %s" % self.statelist[ckey])
+                #print("No question for state %s" % self.statelist[ckey])
         
         
         logsum = -np.inf # variable for accumulating normalisation constant

@@ -48,7 +48,7 @@ class WorldMapWindow(QWidget):
         self.left = 0
         self.top = 0
         self.title = 'Unibrowser- World Map'
-        self.width = 1450
+        self.width = 1300
         self.height = 800
         self.setStyleSheet("background-color: rgb(255, 255, 255);")
         
@@ -56,22 +56,12 @@ class WorldMapWindow(QWidget):
         self.setGeometry(self.left, self.top, self.width, self.height)
         
         layout = QHBoxLayout()
-        self.canvas =  WorldMapCanvas(self.mapinfo, parent=self, width=9, height=7.5) # width and height params don't have any effect when using a layout.
+        self.canvas =  WorldMapCanvas(self.mapinfo, parent=self, width=8.5, height=7.5)
         layout.addWidget(self.canvas)
         
         self.listwidget = countrylistwidget.CountryListWidget()
         layout.addWidget(self.listwidget)
         
-        
-        #self.canvas.move(10,10)                
-              
-        """
-        button = QPushButton('Set a random colour', self)
-        button.setToolTip('Add a random colour to a location on the mapo')
-        button.clicked.connect(lambda: self.handleButton())
-        button.move(950,10)
-        button.resize(140,100)
-        """
         self.setLayout(layout)
         
         """

@@ -38,7 +38,7 @@ class MainWindow(QWidget):
         layout = QVBoxLayout()
         
         questionfont = QFont()
-        questionfont.setPointSize(18)
+        questionfont.setPointSize(15)
         questionfont.setBold(True)
         questionfont.setWeight(75)
         
@@ -47,7 +47,7 @@ class MainWindow(QWidget):
         layout.addWidget(self.label)
         
         answerbuttonfont = QFont()
-        answerbuttonfont.setPointSize(14)
+        answerbuttonfont.setPointSize(13)
         answerbuttonfont.setBold(True)
         #answerbuttonfont.setWeight(75)
         

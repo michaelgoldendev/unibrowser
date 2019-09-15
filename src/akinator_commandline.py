@@ -2,10 +2,11 @@ import akinator_model
 import akinator_character_questionsanswers
 import akinator_geography_questionsanswers
 import numpy as np
+import map_info
 
 if __name__== "__main__":    
     akinator = akinator_model.Akinator()
-    akinator_geography_questionsanswers.setup_geography_akinator(akinator)
+    akinator_geography_questionsanswers.setup_geography_akinator(akinator, map_info.MapInfo())
     questionno = 1
     while True:    
         qkey = akinator.getnextquestion()
@@ -16,8 +17,6 @@ if __name__== "__main__":
         akey = -1
         if answer.startswith("Y"):
             akey = akinator_model.DefaultResponse.YES
-        elif answer.startswith("M"):
-            akey = akinator_model.DefaultResponse.MAYBE
         elif answer.startswith("N"):
             akey = akinator_model.DefaultResponse.NO
         else:

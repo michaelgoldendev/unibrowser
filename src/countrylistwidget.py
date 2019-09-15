@@ -22,13 +22,13 @@ class QCustomWidget (QWidget):
         
         
         countryfont = QFont()
-        countryfont.setPointSize(14)
+        countryfont.setPointSize(12)
         #countryfont.setBold(True)
         #countryfont.setWeight(20)
         self.countrylabel.setFont(countryfont)
         
         probfont = QFont()
-        probfont.setPointSize(12)
+        probfont.setPointSize(10)
         #probfont.setBold(True)
         #countryfont.setWeight(20)
         self.problabel.setFont(probfont)
@@ -84,7 +84,7 @@ class CountryListWidget (QWidget):
             customwidget.iconlabel.setFixedWidth(70)
             
             customwidget.countrylabel.setText(country)
-            customwidget.countrylabel.setFixedWidth(250)
+            customwidget.countrylabel.setFixedWidth(200)
             customwidget.colourlabel.setStyleSheet("background-color:" + color +";")
             customwidget.colourlabel.setFixedWidth(10)
             
