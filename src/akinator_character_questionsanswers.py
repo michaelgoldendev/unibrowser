@@ -1,9 +1,9 @@
 import numpy as np
         
 def setup_character_akinator(akinator):
-    defaultyes = [0.90, 0.05, 0.05]
-    defaultmaybe = [0.2, 0.60, 0.2]
-    defaultno = [0.05, 0.05, 0.90]
+    defaultyes = [0.90, 0.05]
+    defaultmaybe = [0.6, 0.4]
+    defaultno = [0.05, 0.90]
     
     qkey = akinator.addquestion("Are they male?")
     akinator.addanswer(qkey, "Harry Potter", defaultyes)

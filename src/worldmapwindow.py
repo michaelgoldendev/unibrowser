@@ -17,8 +17,7 @@ import matplotlib as mpl
 import matplotlib.animation as animation
 
 import numpy as np
-import random
-import map_info
+import countrylistwidget
 
 class UnicornIcon(QLabel):
     
@@ -49,16 +48,20 @@ class WorldMapWindow(QWidget):
         self.left = 0
         self.top = 0
         self.title = 'Unibrowser- World Map'
-        self.width = 1000
+        self.width = 1450
         self.height = 800
         self.setStyleSheet("background-color: rgb(255, 255, 255);")
         
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
         
-        layout = QVBoxLayout()
+        layout = QHBoxLayout()
         self.canvas =  WorldMapCanvas(self.mapinfo, parent=self, width=9, height=7.5) # width and height params don't have any effect when using a layout.
         layout.addWidget(self.canvas)
+        
+        self.listwidget = countrylistwidget.CountryListWidget()
+        layout.addWidget(self.listwidget)
+        
         
         #self.canvas.move(10,10)                
               

@@ -8,8 +8,11 @@ import akinator_questionpicker
 from enum import IntEnum
 class DefaultResponse(IntEnum):
     YES = 0
-    DONTKNOW = 1
-    NO = 2
+    NO = 1
+    
+class QuestionType(IntEnum):
+    TERMINAL = 0
+    NONTERMINAL = 1
     
 
 class Akinator:
@@ -25,6 +28,7 @@ class Akinator:
         
         self.answerdim = len(responseenum)
         self.questions = []
+        self.questiontypes = []
         self.questiontokeymapping = {}
         self.answerdict = {}
         self.statelist = []
@@ -45,7 +49,7 @@ class Akinator:
         self.stateprobs = np.ones(shape=(self.numstates))/self.numstates
         self.statelogprobs = np.ones(shape=(self.numstates))*-np.log(self.numstates)
         
-    def addquestion(self, questiontext):
+    def addquestion(self, questiontext, questiontype=QuestionType.NONTERMINAL):
         """Add a question to the model,
         
         Parameters:
@@ -58,12 +62,13 @@ class Akinator:
         if questiontext not in self.questiontokeymapping:
             qkey = len(self.questions)
             self.questions.append(questiontext)
+            self.questiontypes.append(questiontype)
             self.questiontokeymapping[questiontext] = qkey
             return qkey
         else:
             return self.questiontokeymapping[questiontext]
     
-    def addquestionanswer(self, questiontext, statename, answervec):
+    def addquestionanswer(self, questiontext, statename, answervec, questiontype=QuestionType.NONTERMINAL):
         """Add a question and a corresponding answer to the model for a particular state
         
         Parameters:
@@ -73,7 +78,7 @@ class Akinator:
         
         """
         
-        qkey = self.addquestion(questiontext)
+        qkey = self.addquestion(questiontext, questiontype=questiontype)
         self.addanswer(qkey, statename, answervec)
         
     
@@ -104,7 +109,7 @@ class Akinator:
         
         """
      
-        avec = np.zeros(3)
+        avec = np.zeros(self.answerdim)
         avec[akey] = 1.0 # create an answer probability vector with no input noise
         self.bayesianupdate_probanswer(qkey, avec)
     
@@ -140,8 +145,8 @@ class Akinator:
         for ckey in range(self.numstates):
             statequestionkey = (self.statelist[ckey],qkey)
             if statequestionkey in self.answerdict:
-                likelihood = np.dot(self.answerdict[statequestionkey],avec)            
-                v = np.log(likelihood) + statelogprobs[ckey]
+                likelihood = np.dot(self.answerdict[statequestionkey], avec)
+                v = np.log(likelihood+1.0e-100) + statelogprobs[ckey]
                 statelogprobs[ckey] = v
                 hasquestionlogsum = np.logaddexp(hasquestionlogsum, v)
             else:

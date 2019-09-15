@@ -7,6 +7,7 @@ The goal ofm a question picker function is typically to minimise the number of q
 """
 
 import numpy as np
+import akinator_model
 
 def nextquestion_entropy(akinator, verbose=False):
     """Chooses the next question using one-step look-ahead and information entropy.
@@ -16,32 +17,37 @@ def nextquestion_entropy(akinator, verbose=False):
     
     """
     
+    terminalquestionprobcutoff = 0.1
+    
     expectedentropies = np.zeros(shape=len(akinator.questions))
+    currentmaxprob = np.max(akinator.stateprobs)
+    print("Current max prob: ", currentmaxprob)
     for qkey in range(len(akinator.questions)):
-        expectedentropy = 0.0
-        for akey in range(akinator.answerdim):
-            avec = np.zeros(3)
-            avec[akey] = 1.0 # create an answer probability vector with no input noise
-            tempstatelogprobs,tempstateprobs = akinator.calculate_state_probs(np.copy(akinator.statelogprobs), np.copy(akinator.stateprobs), qkey, avec) # copy's ensure that the akinator model is not updated
-            
-            entropy = 0.0
-            for (logp,p) in zip(tempstatelogprobs, tempstateprobs):
-                entropy += -p*logp
-            for ckey in range(akinator.numstates):
-                statequestionkey = (akinator.statelist[ckey],qkey)
-                condanswerprob = 1.0/akinator.answerdim # use a flat answer prior if this state doesn't have this question
-                if statequestionkey in akinator.answerdict:
-                    condanswerprob = akinator.answerdict[statequestionkey][akey]
-                expectedentropy += entropy*condanswerprob*akinator.stateprobs[ckey]
+        if (currentmaxprob > terminalquestionprobcutoff or akinator.questiontypes[qkey] != akinator_model.QuestionType.TERMINAL) and qkey not in akinator.usedquestions:
+            expectedentropy = 0.0
+            for akey in range(akinator.answerdim):
+                avec = np.zeros(akinator.answerdim)
+                avec[akey] = 1.0 # create an answer probability vector with no input noise
+                tempstatelogprobs,tempstateprobs = akinator.calculate_state_probs(np.copy(akinator.statelogprobs), np.copy(akinator.stateprobs), qkey, avec) # copy's ensure that the akinator model is not updated
                 
-        expectedentropies[qkey] = expectedentropy
-        if verbose:
-            print("Q%d: %s (expected: %0.7f)" % (qkey, akinator.questions[qkey], expectedentropy))
+                entropy = 0.0
+                for (logp,p) in zip(tempstatelogprobs, tempstateprobs):
+                    entropy += -p*logp
+                for ckey in range(akinator.numstates):
+                    statequestionkey = (akinator.statelist[ckey],qkey)
+                    condanswerprob = 1.0/akinator.answerdim # use a flat answer prior if this state doesn't have this question
+                    if statequestionkey in akinator.answerdict:
+                        condanswerprob = akinator.answerdict[statequestionkey][akey]
+                    expectedentropy += entropy*condanswerprob*akinator.stateprobs[ckey]
+                    
+            expectedentropies[qkey] = expectedentropy
+            if verbose:
+                print("Q%d: %s (expected: %0.7f)" % (qkey, akinator.questions[qkey], expectedentropy))
             
     minentropy = np.inf
     minindex = -1
     for qkey in range(len(akinator.questions)): # choose the question that will result in the minimum expected information entropy
-        if expectedentropies[qkey] < minentropy and qkey not in akinator.usedquestions:
+        if (currentmaxprob > terminalquestionprobcutoff or akinator.questiontypes[qkey] != akinator_model.QuestionType.TERMINAL) and expectedentropies[qkey] < minentropy and qkey not in akinator.usedquestions:
             minentropy = expectedentropies[qkey]
             minindex = qkey 
     return minindex
@@ -58,7 +64,7 @@ def nextquestion_maxprob(akinator, verbose=False):
     for qkey in range(len(akinator.questions)):
         expectedmaxprobability = 0.0
         for akey in range(akinator.answerdim):
-            avec = np.zeros(3)
+            avec = np.zeros(akinator.answerdim)
             avec[akey] = 1.0 # create an answer probability vector with no input noise
             tempstatelogprobs,tempstateprobs = akinator.calculate_state_probs(np.copy(akinator.statelogprobs), np.copy(akinator.stateprobs), qkey, avec) # copy's ensure that the akinator model is not updated
             
