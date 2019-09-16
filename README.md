@@ -12,7 +12,7 @@
     ```
 
 ## Usage
-To launch the Unibrowser GUI run the following command:
+To launch the Unibrowser GUI `cd` into the `src/` directory and run the following command:
 ```console
     python unibrowser_gui.py
 ```
