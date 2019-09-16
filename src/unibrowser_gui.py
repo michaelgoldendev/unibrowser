@@ -19,14 +19,15 @@ class MainWindow(QWidget):
         
         self.model = akinator_model.Akinator()
         akinator_geography_questionsanswers.setup_geography_akinator(self.model, self.mapinfo)
-        self.qkey = self.model.getnextquestion()
-        self.model.usedquestions.append(self.qkey)
-        self.label = QLabel(self.model.questions[self.qkey])
+        
+        self.label = QLabel("")
         
         #self.actionExit.triggered.connect(self.close)
         self.worldmapwindow = worldmapwindow.WorldMapWindow(self.mapinfo)
         self.initUI()        
         self.updateWorldMap(self.model)
+        
+        self.nextquestion()
     
     def close(self):
         exit()
@@ -98,6 +99,17 @@ class MainWindow(QWidget):
         elif answer == 4:
             self.model.bayesianupdate_probanswer(self.qkey, [0.02, 0.98])
             
+        
+        self.nextquestion()
+       
+            
+    def updateWorldMap(self, akinator):
+        for (state,prob) in zip(akinator.statelist, akinator.stateprobs):
+            self.worldmapwindow.canvas.setlocationcolourbyvalue(state,prob,drawimmediately=False)
+        self.worldmapwindow.canvas.draw()
+        self.worldmapwindow.listwidget.updatelist(akinator.stateprobs, self.mapinfo)
+    
+    def nextquestion(self):
         self.qkey = self.model.getnextquestion()
         if self.qkey >= 0:
             questiontype = self.model.questiontypes[self.qkey]
@@ -111,16 +123,10 @@ class MainWindow(QWidget):
                 self.probablynobutton.setEnabled(True)
             
             self.model.usedquestions.append(self.qkey)
-            self.label.setText(self.model.questions[self.qkey])
+            self.label.setText("%d. %s" % (len(self.model.usedquestions), self.model.questions[self.qkey]))
             self.updateWorldMap(self.model)
         else:
             self.model.usedquestions = []
-            
-    def updateWorldMap(self, akinator):
-        for (state,prob) in zip(akinator.statelist, akinator.stateprobs):
-            self.worldmapwindow.canvas.setlocationcolourbyvalue(state,prob,drawimmediately=False)
-        self.worldmapwindow.canvas.draw()
-        self.worldmapwindow.listwidget.updatelist(akinator.stateprobs, self.mapinfo)
             
         
 if __name__ == '__main__':    

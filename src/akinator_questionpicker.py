@@ -9,6 +9,10 @@ The goal of a question picker function is typically to minimise the number of qu
 import numpy as np
 import akinator_model
 
+def cutoff_function(questionno, alpha=0.2, minval=0.05, maxvalue=0.5):
+    v = np.exp(-(float(questionno)-1.0)*alpha)*maxvalue
+    return max(minval, v)
+
 def nextquestion_entropy(akinator, verbose=False):
     """Chooses the next question using one-step look-ahead and information entropy.
     
@@ -17,7 +21,8 @@ def nextquestion_entropy(akinator, verbose=False):
     
     """
     
-    terminalquestionprobcutoff = 0.1
+    terminalquestionprobcutoff = cutoff_function(len(akinator.usedquestions))
+    print("Question cut off:",terminalquestionprobcutoff)
     
     expectedentropies = np.zeros(shape=len(akinator.questions))
     currentmaxprob = np.max(akinator.stateprobs)
@@ -59,7 +64,7 @@ def nextquestion_maxprob(akinator, verbose=False):
     
     """
     
-    terminalquestionprobcutoff = 0.1
+    terminalquestionprobcutoff = cutoff_function(len(akinator.usedquestions))
     
     expectedmaxprobabilities = np.zeros(shape=len(akinator.questions))
     currentmaxprob = np.max(akinator.stateprobs)
