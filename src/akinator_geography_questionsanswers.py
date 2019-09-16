@@ -5,6 +5,10 @@ import akinator_model
 
 import json
 import re
+import os
+
+script_path = os.path.dirname(os.path.abspath( __file__ ))
+questionsfile = os.path.abspath(os.path.join(script_path, '../questions.json'))
 
 def add_demographic_info_from_shape_data(akinator, mapinfo):    
     incomeyes = [0.90, 0.1]
@@ -154,7 +158,7 @@ def setup_geography_akinator(akinator, mapinfo):
     ciacountrycode_tocountrycode["SU"] = "RU"
     
     # Adds a large number of questions from the CIA fact book
-    jsondict = json.load(open("../questions.json","r"))
+    jsondict = json.load(open(questionsfile,"r"))
     nocode = {}
     for (questionttext, countryname, countrycodestring, answervec) in jsondict:
         m = re.match(r'^.*?\.(..).*$', countrycodestring)
