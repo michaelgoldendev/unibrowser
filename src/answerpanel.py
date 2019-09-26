@@ -12,7 +12,7 @@ class Answer(IntEnum):
     PROBABLYNO = 4    
     NO = 5
 
-class AnswerPanel(QWidget):
+class AnswerPanelWidget(QWidget):
     
     answerclicked = pyqtSignal(int)
     
@@ -23,15 +23,18 @@ class AnswerPanel(QWidget):
         
         
     def initUI(self):
-        self.width = 800
-        self.height = 300
-        self.setGeometry(300, 300, self.width, self.height)
+        self.setGeometry(300, 300, 800, 200)
         
         self.midpoint = 40
         self.arrowheight = self.midpoint*2.0
         self.arrowheadlength = 60
-        self.arrowmidlength = self.width-self.arrowheadlength*2.0
+        self.arrowmidlength = self.width()-self.arrowheadlength*2.0
         self.arrowinnerheight = 0 
+        
+        self.lineargradient = QLinearGradient(0,self.midpoint, self.arrowheadlength+self.arrowmidlength+self.arrowheadlength,self.midpoint)
+        self.lineargradient.setColorAt(0.0, QColor(250,61,63))
+        self.lineargradient.setColorAt(0.5, QColor(79,88,167))
+        self.lineargradient.setColorAt(1.0, QColor(22,254,104))
         
         
         self.setWindowTitle('Answer Picker')
@@ -40,9 +43,15 @@ class AnswerPanel(QWidget):
         
         self.highlightedanswer = Answer.NONE
         self.selectedanswer = Answer.NONE
+        self.softoptionsenabled = True
         self.answerclicked.connect(self.answerClickedEvent)
 
-    def paintEvent(self, event):
+    def paintEvent(self, event):        
+        self.midpoint = 40
+        self.arrowheight = self.midpoint*2.0
+        self.arrowheadlength = 60
+        self.arrowmidlength = self.width()-self.arrowheadlength*2.0
+        self.arrowinnerheight = 0 
 
         qp = QPainter()
         qp.begin(self)
@@ -51,7 +60,7 @@ class AnswerPanel(QWidget):
     
     def mouseMoveEvent(self, event): 
         previous = self.selectedanswer
-        if event.y() <= 80:
+        if event.y() <= self.arrowheight:
             if event.x() < self.rect().width()/5.0:
                 self.selectedanswer= Answer.NO
             elif event.x() < self.rect().width()*2.0/5.0:
@@ -76,11 +85,11 @@ class AnswerPanel(QWidget):
             self.highlightedanswer = Answer.NONE
             self.answerclicked.emit(self.selectedanswer)
             self.highlightedanswer = Answer.NONE
-            self.selectedanswer = Answer.NONE
+            #self.selectedanswer = Answer.NONE
         self.repaint()
     
     def answerClickedEvent(self, event):
-        print(event)        
+        """print(event)"""
         
     def redraw(self, event, qp):
         qp.setRenderHint(QPainter.TextAntialiasing)
@@ -100,11 +109,8 @@ class AnswerPanel(QWidget):
             QPoint(self.arrowheadlength,2.0*self.midpoint)
             ]
         qp.setPen(Qt.NoPen);
-        grad = QLinearGradient(0,self.midpoint, self.arrowheadlength+self.arrowmidlength+self.arrowheadlength,self.midpoint)
-        grad.setColorAt(0.0, QColor(250,61,63))
-        grad.setColorAt(0.5, QColor(79,88,167))
-        grad.setColorAt(1.0, QColor(22,254,104))
-        qp.setBrush(QBrush(grad))
+        
+        qp.setBrush(QBrush(self.lineargradient))
         poly = QPolygon(points) 
         qp.drawPolygon(poly)
       
@@ -113,9 +119,9 @@ class AnswerPanel(QWidget):
         texty = self.midpoint*0.0
         
         normalcolor = QColor(0, 0, 0)
-        pressedcolor = QColor(0,0,0,150)
+        pressedcolor = QColor(0,0,0)
         if self.highlightedanswer != Answer.NONE:
-            pressedcolor = QColor(0,0,0)
+            pressedcolor = QColor(50,50,50,255)
             
         textpos = QRect(0.0, texty,self.arrowheadlength*2.0-5.0,self.arrowheight)        
         if self.selectedanswer == Answer.NO:
@@ -135,36 +141,37 @@ class AnswerPanel(QWidget):
         textpos = QRect(self.arrowmidlength+5.0,texty,self.arrowheadlength*2.0,self.arrowheight)
         qp.drawText(textpos, Qt.AlignCenter, "Yes")
         
-        if self.selectedanswer == Answer.DONTKNOW:
-             qp.setPen(pressedcolor)
-             qp.setFont(QFont('Roboto', 16, weight=QFont.Bold))
-        else:
-             qp.setPen(normalcolor)
-             qp.setFont(QFont('Roboto', 14, weight=QFont.Normal))
-        textpos = QRect(self.arrowheadlength,texty,self.arrowmidlength,self.arrowheight)
-        qp.drawText(textpos, Qt.AlignCenter, "Don't\nknow")
-        
-        if self.selectedanswer == Answer.PROBABLYNO:
-             qp.setPen(pressedcolor)
-             qp.setFont(QFont('Roboto', 16, weight=QFont.Bold))
-        else:
-             qp.setPen(normalcolor)
-             qp.setFont(QFont('Roboto', 14, weight=QFont.Normal))
-        textpos = QRect(0,texty,(self.arrowheadlength+self.arrowmidlength+self.arrowheadlength)/2.0,self.arrowheight)
-        qp.drawText(textpos, Qt.AlignCenter, "Probably\nno")
-        
-        if self.selectedanswer == Answer.PROBABLYYES:
-             qp.setPen(pressedcolor)
-             qp.setFont(QFont('Roboto', 16, weight=QFont.Bold))
-        else:
-             qp.setPen(normalcolor)
-             qp.setFont(QFont('Roboto', 14, weight=QFont.Normal))
-        textpos = QRect((self.arrowheadlength+self.arrowmidlength+self.arrowheadlength)/2.0,texty,(self.arrowheadlength+self.arrowmidlength+self.arrowheadlength)/2.0,self.arrowheight)
-        qp.drawText(textpos, Qt.AlignCenter, "Probably\nyes")
+        if self.softoptionsenabled:
+            if self.selectedanswer == Answer.DONTKNOW:
+                 qp.setPen(pressedcolor)
+                 qp.setFont(QFont('Roboto', 16, weight=QFont.Bold))
+            else:
+                 qp.setPen(normalcolor)
+                 qp.setFont(QFont('Roboto', 14, weight=QFont.Normal))
+            textpos = QRect(self.arrowheadlength,texty,self.arrowmidlength,self.arrowheight)
+            qp.drawText(textpos, Qt.AlignCenter, "Don't\nknow")
+            
+            if self.selectedanswer == Answer.PROBABLYNO:
+                 qp.setPen(pressedcolor)
+                 qp.setFont(QFont('Roboto', 16, weight=QFont.Bold))
+            else:
+                 qp.setPen(normalcolor)
+                 qp.setFont(QFont('Roboto', 14, weight=QFont.Normal))
+            textpos = QRect(0,texty,(self.arrowheadlength+self.arrowmidlength+self.arrowheadlength)/2.0,self.arrowheight)
+            qp.drawText(textpos, Qt.AlignCenter, "Probably\nno")
+            
+            if self.selectedanswer == Answer.PROBABLYYES:
+                 qp.setPen(pressedcolor)
+                 qp.setFont(QFont('Roboto', 16, weight=QFont.Bold))
+            else:
+                 qp.setPen(normalcolor)
+                 qp.setFont(QFont('Roboto', 14, weight=QFont.Normal))
+            textpos = QRect((self.arrowheadlength+self.arrowmidlength+self.arrowheadlength)/2.0,texty,(self.arrowheadlength+self.arrowmidlength+self.arrowheadlength)/2.0,self.arrowheight)
+            qp.drawText(textpos, Qt.AlignCenter, "Probably\nyes")
                 
         
 if __name__ == '__main__':
     
     app = QApplication(sys.argv)
-    ex = AnswerPanel()
+    ex = AnswerPanelWidget()
     sys.exit(app.exec_())

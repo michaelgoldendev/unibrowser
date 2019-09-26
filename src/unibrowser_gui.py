@@ -9,11 +9,14 @@ import akinator_model
 import akinator_geography_questionsanswers
 import worldmapwindow
 import map_info
+from answerpanel import AnswerPanelWidget
+from answerpanel import Answer
 
 class MainWindow(QWidget):
     
     def __init__(self):
         super().__init__()
+        self.setFixedWidth(800)
         
         self.mapinfo = map_info.MapInfo()
         
@@ -52,6 +55,7 @@ class MainWindow(QWidget):
         answerbuttonfont.setBold(True)
         #answerbuttonfont.setWeight(75)
         
+        """
         self.yesbutton = QPushButton('Yes', self)
         self.yesbutton.setFont(answerbuttonfont)
         self.yesbutton.clicked.connect(lambda: self.handleButton(0))
@@ -81,6 +85,12 @@ class MainWindow(QWidget):
         self.nobutton.clicked.connect(lambda: self.handleButton(4))
         self.nobutton.setToolTip('No')
         layout.addWidget(self.nobutton)
+        """
+        layout.addStretch(1)
+        self.answerpanel = AnswerPanelWidget()
+        self.answerpanel.setFixedHeight(80)
+        self.answerpanel.answerclicked.connect(self.answerClickedEvent)
+        layout.addWidget(self.answerpanel)
         
         
         self.setLayout(layout)
@@ -101,6 +111,21 @@ class MainWindow(QWidget):
             
         
         self.nextquestion()
+    
+    def answerClickedEvent(self, answer):
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        if answer == Answer.YES: # Yes
+            self.model.bayesianupdate_probanswer(self.qkey, [0.98, 0.02])
+        elif  answer == Answer.PROBABLYYES:
+            self.model.bayesianupdate_probanswer(self.qkey, [0.80, 0.20])
+        elif  answer == Answer.DONTKNOW:
+            self.model.bayesianupdate_probanswer(self.qkey, [0.50, 0.50])
+        elif answer == Answer.PROBABLYNO:
+            self.model.bayesianupdate_probanswer(self.qkey, [0.20, 0.80])
+        elif answer == Answer.NO:
+            self.model.bayesianupdate_probanswer(self.qkey, [0.02, 0.98])
+        self.nextquestion()
+        QApplication.restoreOverrideCursor()
        
             
     def updateWorldMap(self, akinator):
@@ -114,6 +139,13 @@ class MainWindow(QWidget):
         if self.qkey >= 0:
             questiontype = self.model.questiontypes[self.qkey]
             if questiontype == akinator_model.QuestionType.TERMINAL:
+                self.answerpanel.softoptionsenabled = False
+                self.answerpanel.repaint()
+            else:
+                self.answerpanel.softoptionsenabled = True
+                self.answerpanel.repaint()
+            """
+            if questiontype == akinator_model.QuestionType.TERMINAL:
                 self.probablyyesbutton.setEnabled(False)
                 self.maybebutton.setEnabled(False)
                 self.probablynobutton.setEnabled(False)
@@ -121,6 +153,7 @@ class MainWindow(QWidget):
                 self.probablyyesbutton.setEnabled(True)
                 self.maybebutton.setEnabled(True)
                 self.probablynobutton.setEnabled(True)
+            """
             
             self.model.usedquestions.append(self.qkey)
             self.label.setText("%d. %s" % (len(self.model.usedquestions), self.model.questions[self.qkey]))
