@@ -20,31 +20,14 @@
 
 %% load data
 
-D = load('P300S02.mat');
-
-%%
-
-figure
-hold on
-plot(D.data.X(1:1000,:))
-%plot(D.data.y_stim(1:10000)*100)
-
-%% cut out 600 ms after relevant flash
-
-% Flash: at t = 7736, duration = 32, location = 8 (2nd column), atteneded
-% key was flashed: 2 (1:no, 2:yes)
-t = 7736;
-sixhms = 154;
-figure
-plot(D.data.X(t:t + sixhms,:))
+D = load('P300S08.mat');
 
 %%  Go through 10 sequences of flashes, add the relevant snippets up
 
-avg = zeros(12, 8, 154);
+trial = 1;
 
-d = 153;
-
-trial = 2;
+dur = 100;
+avg = zeros(12, 8, dur);
 
 istart = 1 + (trial - 1)*120;
 istop = 120 + (trial - 1)*120;
@@ -54,8 +37,7 @@ for i = istart:istop % got 120 flashes for each letter
     t = D.data.flash(i,1);
     c = D.data.flash(i,3);
     
-    avg(c,:,:) = squeeze(avg(c,:,:)) + D.data.X(t:t+d,:)';
-    
+    avg(c,:,:) = squeeze(avg(c,:,:)) + D.data.X(t:t+dur-1,:)';    
 end
 
 avg = avg/10;
@@ -63,8 +45,10 @@ avg = avg/10;
 % Check ground truth
 % figure; scatter(D.data.flash(istart:istop,3), D.data.flash(istart:istop,4), 'filled')
 
-%%
-e = 2;
+%% plot averages for above, single electrode
+
+e = 8;
+x = (1:dur)*0.0039;
 figure
 for c = 1:12
     subplot(12,1,c)
@@ -74,30 +58,19 @@ end
 
 
 set(gcf, 'Position', [440 56 111 742])
-%%
+
+%% plot averages of above, mean over electrodes
 
 figure
 for c = 1:12
     subplot(12,1,c)
-    plot(x,mean(squeeze(avg(c,:,:))))
+    plot(x,mean(squeeze(avg(c,6:8,:))))
     ylim([-20, 20])
 end
 
 set(gcf, 'Position', [440 56 111 742])
 
-
-%%
-figure
-for c = 1:12
-    subplot(2,6,c)
-    
-    plot(squeeze(avg(c,:))')
-    ylim([-20,20])
-    title(sprintf('C = %G', c))
-end
-
-%% try to find p300 form
-
+%% try to find p300 form, use all data in one participant
 
 stim_hit = D.data.flash(D.data.flash(:,4) == 2, :);
 stim_miss = D.data.flash(D.data.flash(:,4) == 1, :);
