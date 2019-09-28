@@ -6,6 +6,7 @@ from PyQt5.QtChart import *
 
 from enum import IntEnum
 import random
+from functools import partial
 
 class InputMethod(IntEnum):
     MOUSE = 0
@@ -44,40 +45,43 @@ class AnswerPanelWidget(QWidget):
         self.pressedanswer = Answer.NONE
         self.mouseoveranswer = Answer.NONE
         self.softoptionsenabled = True
-        self.answerclicked.connect(self.answerClickedEvent)
-        
-        
+        self.answerclicked.connect(self.answerClickedEvent)        
         
         self.answers = ["Yes", "No"]
         self.frame = 0
-        self.answerstates = [0 for i in range(len(self.answers))]        
-        self.timerintervalmillis = 5
-        self.frequencies = [7.0,11.0]
-        self.modulus = [int(1000.0/(self.timerintervalmillis*freq)) for freq in self.frequencies]
-        print(self.modulus)
+        self.answerstates = [0 for i in range(len(self.answers))]
+        self.frequencies = [3.0,4.5]   
+        self.divisions = 4
+        self.fractionofdivision = 1 # show face for 1/4 of time
+        self.periodsinmilli = [1000.0/freq/self.divisions for freq in self.frequencies]
+        self.counts = [0 for i in range(len(self.answers))]
+        
+        self.timers = [QTimer() for i in range(len(self.answers))]
         
         self.blockrects = []
-        self.blockwidth = 110
+        self.blockwidth = 200
         self.blockheight = self.blockwidth
         self.blockrounding = 7
-        self.buttonspacing = 30
+        self.buttonspacing = 250
+        self.yoffset = 0
         for (index,ans) in enumerate(self.answers):
-            self.blockrects.append(QRectF( self.buttonspacing+index*(self.blockwidth+ self.buttonspacing),  self.buttonspacing,  self.blockwidth,  self.blockheight))      
+            self.blockrects.append(QRectF(index*(self.blockwidth+self.buttonspacing),  self.yoffset,  self.blockwidth,  self.blockheight))      
         
-        self.facepixmaps = [QPixmap("../images/faces/example1.jpg").scaledToWidth(self.blockwidth, mode=Qt.SmoothTransformation)]
-        panelwidth =  self.buttonspacing+len(self.answers)*(self.blockwidth+ self.buttonspacing) 
-        self.setGeometry(300, 300, panelwidth,  self.blockwidth+ self.buttonspacing*2)
+        self.facepixmaps = []
+        self.facepixmaps.append(QPixmap("../images/faces/jennifer-lawrence.jpg").scaledToWidth(self.blockwidth, mode=Qt.SmoothTransformation))
+        self.facepixmaps.append(QPixmap("../images/faces/nicolas-cage.jpg").scaledToWidth(self.blockwidth, mode=Qt.SmoothTransformation))
+        self.panelwidth =  self.buttonspacing*(len(self.answers)-1) + self.blockwidth*len(self.answers)
+        self.panelheight = self.blockheight + self.yoffset
+        self.setFixedWidth(self.panelwidth)
+        self.setFixedHeight(self.panelheight)
         
-    def f(self):
-        dorepaint = False
-        for (index,state) in enumerate(self.answerstates):
-            if self.frame % self.modulus[index] == 0:
-                self.answerstates[index] = 1 - self.answerstates[index]        
-                dorepaint = True
-        self.frame += 1
-        if dorepaint:
-            print(self.answerstates)
-            self.repaint()
+    def f(self, index):
+        if self.counts[index] % self.divisions < self.fractionofdivision:
+            self.answerstates[index] = 1 # show face
+        else:
+            self.answerstates[index] = 0 # don't show face
+        self.counts[index] += 1
+        self.repaint()
            
 
     def paintEvent(self, event):
@@ -112,12 +116,15 @@ class AnswerPanelWidget(QWidget):
             
         self.mouseinteractionenabled  = not self.mouseinteractionenabled
         if not self.mouseinteractionenabled:
-            self.timer = QTimer()
-            self.timer.timeout.connect(self.f)
-            self.timer.start(self.timerintervalmillis)
-        else:
-            self.timer.stop()
             self.mouseoveranswer = Answer.NONE
+            for (index,period) in enumerate(self.periodsinmilli):
+                self.timers[index].timeout.connect(partial(self.f,index))
+                self.timers[index].start(period)
+        else:
+            for (index,timer) in enumerate(self.timers):
+                timer.stop()                
+                self.answerstates[index] = 0
+                self.mouseoveranswer = Answer.NONE
             self.repaint()
     
     def answerClickedEvent(self, event):
@@ -136,12 +143,16 @@ class AnswerPanelWidget(QWidget):
         mouseovercolor = QColor(225,225,225,255)
         pressedcolor = QColor(175,175,175,255)
         
+        fontpenblack = QPen(QColor(0,0,0,225))
+        fontpentransparent = QPen(QColor(0,0,0,30))
+        
         #fontsizes = [18,13,13,13,18]
-        fontsizes = [18,18]
+        fontsizes = [36,36]
         for (index,(answer,blockrect)) in enumerate(zip(self.answers, self.blockrects)):
+                
             fillcolor = unselectedcolor
             qp.setFont(QFont('Roboto', fontsizes[index], weight=QFont.Normal))
-            if self.mouseoveranswer == index:
+            if self.answerstates[index] == 1 or self.mouseoveranswer == index:
                 fillcolor = mouseovercolor
                 qp.setFont(QFont('Roboto', fontsizes[index], weight=QFont.Bold))
             if self.pressedanswer == index:
@@ -150,12 +161,12 @@ class AnswerPanelWidget(QWidget):
             
             
             blockpath = QPainterPath()
-            blockpath.addRoundedRect(blockrect, self.blockrounding, self.blockrounding);     
+            blockpath.addRoundedRect(blockrect, self.blockrounding, self.blockrounding);                 
             
-            if self.mouseoveranswer == index:
+            if self.answerstates[index] == 1 or self.mouseoveranswer == index:
                 facerect = QRectF(0.0,0.0, self.blockwidth, self.blockheight)
                 tempbrush = qp.brush()
-                brush = QBrush(self.facepixmaps[0]);
+                brush = QBrush(self.facepixmaps[index]);
                 t = QTransform()
                 t.translate(blockrect.x(), blockrect.y())
                 brush.setTransform(t)
@@ -165,14 +176,16 @@ class AnswerPanelWidget(QWidget):
             else:      
                 qp.fillPath(blockpath, fillcolor)
             
-            #qp.drawPixmap(blockrect.toRect(), self.facepixmaps[0])
             if self.pressedanswer == index:
                 qp.setPen(pressedborderpen)            
             else:
                 qp.setPen(borderpen)
             qp.drawPath(blockpath)            
             
-            qp.setPen(Qt.black)
+            
+            qp.setPen(fontpenblack)
+            if self.answerstates[index] == 1:
+                qp.setPen(fontpentransparent)
             qp.drawText(blockrect, Qt.AlignCenter, answer)
 
 class QuestionPanel(QWidget):
@@ -182,29 +195,33 @@ class QuestionPanel(QWidget):
         
         self.setWindowTitle('Unibrowser')
         self.setMouseTracking(True)
-        self.show()
         
-        self.vboxlayout  = QVBoxLayout()
+        self.vboxlayout  = QVBoxLayout()        
+        self.vboxlayout.setAlignment(Qt.AlignCenter)
         
+        """
         self.mousebcitoggle = QPushButton("Mouse input")
         self.mousebcitoggle.setCheckable(True)
         self.mousebcitoggle.clicked.connect(self.btnstate)
         self.mousebcitoggle.setFixedWidth(200)
         self.vboxlayout.addWidget(self.mousebcitoggle)
+        """
         
         labelfont = QFont()
         labelfont.setPointSize(15)
         #questionfont.setBold(True)
         #questionfont.setWeight(75)
-        self.label = QLabel("Please calibrate by the Brain Computer Interface.")
+        self.label = QLabel("Is your country in the Northern Hemisphere?")
         self.label.setFont(labelfont)
+        self.setFixedWidth(1000)
         self.label.setAlignment(Qt.AlignCenter)
         self.vboxlayout.addWidget(self.label)
         
         self.answerpanel = AnswerPanelWidget()
-        self.vboxlayout.addWidget(self.answerpanel, 0)
+        self.vboxlayout.addWidget(self.answerpanel)
         self.setLayout(self.vboxlayout)
-        self.setGeometry(300,300,self.answerpanel.width(), 500)
+        
+        self.show()
     
     def btnstate(self):
       if self.mousebcitoggle.isChecked():
