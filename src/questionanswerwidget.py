@@ -7,6 +7,12 @@ from PyQt5.QtChart import *
 from enum import IntEnum
 import random
 
+class InputMethod(IntEnum):
+    MOUSE = 0
+    P300SPELLING = 1
+    POWERSPECTRUM = 2
+
+"""
 class Answer(IntEnum):
     NONE = -1
     YES = 0
@@ -14,6 +20,11 @@ class Answer(IntEnum):
     DONTKNOW = 2
     PROBABLYNO = 3    
     NO = 4
+"""
+class Answer(IntEnum):
+    NONE = -1
+    YES = 0   
+    NO = 1
     
 class AnswerPanelWidget(QWidget):
     
@@ -22,6 +33,7 @@ class AnswerPanelWidget(QWidget):
     def __init__(self):
         super().__init__()
         
+        self.inputmethod = InputMethod.MOUSE
         self.initUI()
         self.mouseinteractionenabled = True
         
@@ -34,7 +46,16 @@ class AnswerPanelWidget(QWidget):
         self.softoptionsenabled = True
         self.answerclicked.connect(self.answerClickedEvent)
         
-        self.answers = ["Yes", "Probably\nyes", "Don't\nknow", "Probably\nno", "No"]
+        
+        
+        self.answers = ["Yes", "No"]
+        self.frame = 0
+        self.answerstates = [0 for i in range(len(self.answers))]        
+        self.timerintervalmillis = 5
+        self.frequencies = [7.0,11.0]
+        self.modulus = [int(1000.0/(self.timerintervalmillis*freq)) for freq in self.frequencies]
+        print(self.modulus)
+        
         self.blockrects = []
         self.blockwidth = 110
         self.blockheight = self.blockwidth
@@ -48,9 +69,15 @@ class AnswerPanelWidget(QWidget):
         self.setGeometry(300, 300, panelwidth,  self.blockwidth+ self.buttonspacing*2)
         
     def f(self):
-        #self.mouseoveranswer = (self.mouseoveranswer+1) % len(self.answers)
-        self.mouseoveranswer = (self.mouseoveranswer + random.randint(2, len(self.answers)-1)) % len(self.answers)
-        self.repaint()
+        dorepaint = False
+        for (index,state) in enumerate(self.answerstates):
+            if self.frame % self.modulus[index] == 0:
+                self.answerstates[index] = 1 - self.answerstates[index]        
+                dorepaint = True
+        self.frame += 1
+        if dorepaint:
+            print(self.answerstates)
+            self.repaint()
            
 
     def paintEvent(self, event):
@@ -87,7 +114,7 @@ class AnswerPanelWidget(QWidget):
         if not self.mouseinteractionenabled:
             self.timer = QTimer()
             self.timer.timeout.connect(self.f)
-            self.timer.start(250)
+            self.timer.start(self.timerintervalmillis)
         else:
             self.timer.stop()
             self.mouseoveranswer = Answer.NONE
@@ -109,7 +136,8 @@ class AnswerPanelWidget(QWidget):
         mouseovercolor = QColor(225,225,225,255)
         pressedcolor = QColor(175,175,175,255)
         
-        fontsizes = [18,13,13,13,18]
+        #fontsizes = [18,13,13,13,18]
+        fontsizes = [18,18]
         for (index,(answer,blockrect)) in enumerate(zip(self.answers, self.blockrects)):
             fillcolor = unselectedcolor
             qp.setFont(QFont('Roboto', fontsizes[index], weight=QFont.Normal))
