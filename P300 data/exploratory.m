@@ -62,9 +62,10 @@ set(gcf, 'Position', [440 56 111 742])
 %% plot averages of above, mean over electrodes
 
 figure
+%x = (1:154)*0.0039;
 for c = 1:12
     subplot(12,1,c)
-    plot(x,mean(squeeze(avg(c,6:8,:))))
+    plot(mean(squeeze(avg(c,6:8,:))))
     ylim([-20, 20])
 end
 
