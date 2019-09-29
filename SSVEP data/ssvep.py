@@ -17,7 +17,7 @@ from scipy.signal import butter, lfilter
 from sklearn.cross_decomposition import CCA
 
 # load data
-s = '/Users/mo/Collaborations/unibrowser/SSVEP data/data/EEG-SSVEP-Experiment3/U002ai.mat'
+s = '/Users/mo/Collaborations/unibrowser/SSVEP data/data/EEG-SSVEP-Experiment3/U002ci.mat'
 mat = scipy.io.loadmat(s)
 
 events = mat['events']
@@ -107,7 +107,7 @@ def freq_basis(f, sr, T):
     # T is length of time interval, sr is sample freuqency
     time = np.linspace(0,T,T*128)
     
-    for i in range(1,4):
+    for i in range(1,5):
         if i == 1:
             Y =  np.vstack([np.sin(2*np.pi*f*time*i), np.cos(2*np.pi*f*time*i)])
         else:
