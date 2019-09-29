@@ -11,6 +11,10 @@
 * In operation mode, use classifier for each feature vector, to find prob that this letter was looked at. Output the letter with highest prob.
 * Check first paragraph of https://www.tandfonline.com/doi/full/10.1080/2326263X.2017.1410418 to get some references.
 
+Further materials:
+
+Whole P300 data gathering and analysis: https://eeg-notebooks.readthedocs.io/en/latest/visual_p300.html
+
 ### Method 2 (probably the one we want to use for binary choice!)
 
 Based on https://www.pnas.org/content/112/44/E6058
@@ -19,6 +23,10 @@ Based on https://www.pnas.org/content/112/44/E6058
 * Do a power spectrum of the EEG, see which of the frequencies is strongest.
 * This should be quicker.
 * Note: refresh rate of monitor makes it difficult. It might be 60 Hz, then should use some 8 Hz and 12 Hz because otherwise it would not work somehow.
+
+Code for python for powerspectrum: https://raphaelvallat.com/bandpower.html
+
+Get data from here: https://figshare.com/articles/MAMEM_EEG_SSVEP_Dataset_III_14_channels_11_subjects_5_frequencies_presented_simultaneously_/3413851/1
 
 ### Method 3
 
