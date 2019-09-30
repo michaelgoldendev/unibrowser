@@ -161,6 +161,7 @@ def setup_geography_akinator(akinator, mapinfo):
     jsondict = json.load(open(questionsfile,"r"))
     nocode = {}
     for (questionttext, countryname, countrycodestring, answervec) in jsondict:
+        #if not questionttext.startswith("Does your country border"):
         m = re.match(r'^.*?\.(..).*$', countrycodestring)
         countrycode = countrycodestring[0:2]
         if m != None:
@@ -175,7 +176,7 @@ def setup_geography_akinator(akinator, mapinfo):
         else:
             nocode[countrycode] = countryname
     #print(internetcode_to_ciacountryname)
-    print(nocode)
+            print(nocode)
     
     add_demographic_info_from_shape_data(akinator, mapinfo)
     add_additional_questions(akinator, mapinfo)
