@@ -10,6 +10,26 @@ from functools import partial
 import math
 import os
 
+def samplediscrete(probabilityvec):
+    r = random.random()*sum(probabilityvec)
+    cumsum = 0.0
+    for (i,v) in enumerate(probabilityvec):
+        cumsum += v
+        if r <= cumsum:
+            return i
+    return 0
+    
+
+RELEASE_VERSION = False
+
+class Answer(IntEnum):
+    NONE = -1
+    YES = 0      
+    NO = 1
+    PROBABLYYES = 2
+    DONTKNOW = 3
+    PROBABLYNO = 4  
+
 script_path = os.path.dirname(os.path.abspath( __file__ ))
 
 class PausableQTimer(QTimer):
@@ -31,33 +51,21 @@ class InputMethod(IntEnum):
     MOUSE = 0
     P300SPELLING = 1
     POWERSPECTRUM = 2
-
-"""
-class Answer(IntEnum):
-    NONE = -1
-    YES = 0
-    PROBABLYYES = 1
-    DONTKNOW = 2
-    PROBABLYNO = 3    
-    NO = 4
-"""
-class Answer(IntEnum):
-    NONE = -1
-    YES = 0   
-    NO = 1
     
 class AnswerPanelWidget(QWidget):
     
     answerclicked = pyqtSignal(int)
     
-    def __init__(self):
+    def setInputMethod(self, inputmethod):        
+        self.inputmethod = inputmethod
+        if self.inputmethod == InputMethod.MOUSE:
+            self.setMouseTracking(True)
+        else:
+            self.setMouseTracking(False)
+    
+    def __init__(self, inputmethod):
         super().__init__()        
-        self.initUI()
-        self.mouseinteractionenabled = True
-        
-        
-    def initUI(self):
-        self.setMouseTracking(False)
+        self.setInputMethod(inputmethod)
         
         self.pressedanswer = Answer.NONE
         self.mouseoveranswer = Answer.NONE
@@ -93,7 +101,7 @@ class AnswerPanelWidget(QWidget):
         self.panelheight = self.blockheight + self.yoffset
         self.setFixedWidth(self.panelwidth)
         self.setFixedHeight(self.panelheight)
-                
+        self.mouseinteractionenabled = True
         
     def flash(self, index):
         if self.counts[index] % self.divisions < self.fractionofdivision:
@@ -216,10 +224,11 @@ class AnswerPanelWidget(QWidget):
                 qp.setPen(fontpentransparent)
             qp.drawText(blockrect, Qt.AlignCenter, answer)
 
-class QuestionPanel(QWidget):
+class QuestionAnswerWidget(QWidget):
     
-    def __init__(self):
+    def __init__(self, parent):
         super().__init__()
+        self.parent = parent
         
         self.inputmethod = InputMethod.MOUSE
         
@@ -231,24 +240,15 @@ class QuestionPanel(QWidget):
         
         
         self.warningtimesecs = 3
-        self.questiontimeoutmillis = 15000.0
+        self.questiontimeoutmillis = 15000.0 if RELEASE_VERSION else 3000.0
         self.questiontimeoutmillis += self.warningtimesecs*1000.0
         self.timerintervalmillis = 1000.0
-        self.questiontext = "Is your country in the Northern Hemisphere?"
         self.questionno = 0
         self.questionframe = 0
         self.questiontimer = QTimer()        
         self.questiontimer.timeout.connect(self.updatequestion)
         
-        self.bcianimationtimeoutmillis = 6000.0
-        
-        """
-        self.mousebcitoggle = QPushButton("Mouse input")
-        self.mousebcitoggle.setCheckable(True)
-        self.mousebcitoggle.clicked.connect(self.btnstate)
-        self.mousebcitoggle.setFixedWidth(200)
-        self.vboxlayout.addWidget(self.mousebcitoggle)
-        """
+        self.bcianimationtimeoutmillis = 6000.0 if RELEASE_VERSION else 1000.0
         
         labelfont = QFont()
         labelfont.setPointSize(16)
@@ -260,7 +260,7 @@ class QuestionPanel(QWidget):
         self.label.setAlignment(Qt.AlignCenter)
         self.vboxlayout.addWidget(self.label)
         
-        self.answerpanel = AnswerPanelWidget()
+        self.answerpanel = AnswerPanelWidget(self.inputmethod)
         self.vboxlayout.addWidget(self.answerpanel)
         self.setLayout(self.vboxlayout)
         
@@ -270,18 +270,23 @@ class QuestionPanel(QWidget):
         
     
     def refreshquestiontext(self):
-        elapsedtimequestionmillis = self.questionframe*self.timerintervalmillis
-        elapsedtimequestionsecs = math.ceil((self.questiontimeoutmillis-elapsedtimequestionmillis)/1000.0)
-        if elapsedtimequestionsecs > self.warningtimesecs:
-            self.label.setText("%s\n(%d seconds)" % (self.questiontext, elapsedtimequestionsecs-self.warningtimesecs))
-        else:
-            self.label.setText("%s\nNow focus on your answer and try count the flashes." % self.questiontext)
-        return elapsedtimequestionmillis
+        if self.inputmethod == InputMethod.MOUSE:
+            self.label.setText(self.parent.questiontext)
+        elif self.inputmethod == InputMethod.POWERSPECTRUM:
+            elapsedtimequestionmillis = self.questionframe*self.timerintervalmillis
+            elapsedtimequestionsecs = math.ceil((self.questiontimeoutmillis-elapsedtimequestionmillis)/1000.0)
+            if elapsedtimequestionsecs > self.warningtimesecs:
+                self.label.setText("%s\n(%d seconds)" % (self.parent.questiontext, elapsedtimequestionsecs-self.warningtimesecs))
+            else:
+                self.label.setText("%s\nNow focus on your answer and try count the flashes." % self.parent.questiontext)
+            return elapsedtimequestionmillis
     
     
     def shownextquestion(self):
+        self.parent.nextquestion()
         self.refreshquestiontext()
-        self.questiontimer.start(self.timerintervalmillis)        
+        if self.inputmethod == InputMethod.POWERSPECTRUM:
+            self.questiontimer.start(self.timerintervalmillis)
     
     def updatequestion(self):
         self.questionframe += 1        
@@ -289,7 +294,6 @@ class QuestionPanel(QWidget):
         if elapsedtimequestionmillis >= self.questiontimeoutmillis:            
             self.questiontimer.stop()
             self.questionframe = 0
-            #self.shownextquestion()
             self.startBCI()
             QTimer.singleShot(self.bcianimationtimeoutmillis, self.stopBCI)
     
@@ -297,18 +301,17 @@ class QuestionPanel(QWidget):
         self.answerpanel.startBCIanimation()
     
     def stopBCI(self):
+        answervec = self.parent.model.answerdict[('South Africa',self.parent.qkey)]
+        simulatedanswer = samplediscrete(answervec)
+        print(self.parent.model.questions[self.parent.qkey])
+        print("%s, choice %d" % (answervec,simulatedanswer))
         self.answerpanel.stopBCIanimation()
-        self.shownextquestion()
-    
-    def btnstate(self):
-      if self.mousebcitoggle.isChecked():
-         self.mousebcitoggle.setText("Brain input")
-      else:
-         self.mousebcitoggle.setText("Mouse input")
+        self.answerpanel.answerclicked.emit(simulatedanswer)
+        #self.shownextquestion()
         
 
 if __name__ == '__main__':
     
     app = QApplication(sys.argv)
-    ex = QuestionPanel()
+    ex = QuestionAnswerWidget()
     sys.exit(app.exec_())

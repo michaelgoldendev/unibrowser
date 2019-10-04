@@ -17,7 +17,10 @@ import matplotlib as mpl
 import matplotlib.animation as animation
 
 import numpy as np
+
+import map_info
 import countrylistwidget
+from questionanswerwidget import QuestionAnswerWidget
 
 class UnicornIcon(QLabel):
     
@@ -40,7 +43,7 @@ class UnicornIcon(QLabel):
 
     pos = pyqtProperty(QPointF, fset=_set_pos)   
 
-class WorldMapWindow(QWidget):
+class WorldMapWidget(QWidget):
 
     def __init__(self, mapinfo):
         super().__init__()
@@ -48,21 +51,34 @@ class WorldMapWindow(QWidget):
         self.left = 0
         self.top = 0
         self.title = 'Unibrowser- World Map'
-        self.width = 1300
-        self.height = 800
+        #self.width = 1300
+        #self.height = 800
         self.setStyleSheet("background-color: rgb(255, 255, 255);")
         
         self.setWindowTitle(self.title)
-        self.setGeometry(self.left, self.top, self.width, self.height)
+       # self.setGeometry(self.left, self.top, self.width, self.height)
+        mainlayout = QHBoxLayout()
         
-        layout = QHBoxLayout()
+        leftframe =  QFrame()    
+        leftframelayout = QVBoxLayout()
+        leftframe.setLayout(leftframelayout)
+        mainlayout.addWidget(leftframe)
+        
+        self.answerpanel = QuestionAnswerWidget()
+        #self.answerpanel.setFixedHeight(200)
+        #self.answerpanel.answerclicked.connect(self.answerClickedEvent)
+        leftframelayout.addWidget(self.answerpanel)
+        
         self.canvas =  WorldMapCanvas(self.mapinfo, parent=self, width=8.5, height=7.5)
-        layout.addWidget(self.canvas)
+        leftframelayout.addWidget(self.canvas)
+        
+       
+        
         
         self.listwidget = countrylistwidget.CountryListWidget()
-        layout.addWidget(self.listwidget)
+        mainlayout.addWidget(self.listwidget)
         
-        self.setLayout(layout)
+        self.setLayout(mainlayout)
         
         """
         self.unicornicon = UnicornIcon(self)
@@ -108,7 +124,9 @@ class WorldMapWindow(QWidget):
 
 class WorldMapCanvas(FigureCanvas):
 
-    def __init__(self, mapinfo, parent=None, width=10, height=8, dpi=None):
+    def __init__(self, mapinfo, parent=None, width=10, height=8, dpi=None):        
+        self.showLegend = False
+        
         self.mapinfo = mapinfo
         fig = plt.figure(figsize=(width,height))        
         #plt.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.01)
@@ -148,30 +166,32 @@ class WorldMapCanvas(FigureCanvas):
         for (prob,loc) in zip(probabilities, self.patchlistsbylocation.keys()):
             self.setlocationcolourbyvalue(loc, prob, drawimmediately=False)
             
-        #cax = fig.add_axes([0.2, 0.07, 0.6, 0.04])
-        cax = fig.add_axes([0.2, 0.065, 0.6, 0.04])
-        cb1 = mpl.colorbar.ColorbarBase(cax, cmap=self.colormap, norm=self.norm, orientation='horizontal')
-        tickcoords = cb1.ax.get_xticks()
-        ticklabels = cb1.ax.get_xticklabels()
-        for (coord,ticklabel) in zip(tickcoords, ticklabels):
-            val = self.norm.inverse(coord)
-            if np.abs(val-1.0) < val*1.0e-10:                
-                ticklabel.set_text("1.0")
-            elif np.abs(val-0.5) < val*1.0e-10:                
-                ticklabel.set_text("0.5")
-            elif np.abs(val-0.1) < val*1.0e-10:
-                ticklabel.set_text("0.1")
-            elif np.abs(val-0.01) < val*1.0e-10:
-                ticklabel.set_text("0.01")
-            elif np.abs(val-0.001) < val*1.0e-10:
-                ticklabel.set_text("0.001")
-            elif np.abs(val-0.0001) < val*1.0e-10:
-                ticklabel.set_text("0.0001")
-        ticklabels[0].set_text("<" + ticklabels[0].get_text())
+            
+        if self.showLegend:
+            #cax = fig.add_axes([0.2, 0.07, 0.6, 0.04])
+            cax = fig.add_axes([0.2, 0.065, 0.6, 0.04])
+            cb1 = mpl.colorbar.ColorbarBase(cax, cmap=self.colormap, norm=self.norm, orientation='horizontal')
+            tickcoords = cb1.ax.get_xticks()
+            ticklabels = cb1.ax.get_xticklabels()
+            for (coord,ticklabel) in zip(tickcoords, ticklabels):
+                val = self.norm.inverse(coord)
+                if np.abs(val-1.0) < val*1.0e-10:                
+                    ticklabel.set_text("1.0")
+                elif np.abs(val-0.5) < val*1.0e-10:                
+                    ticklabel.set_text("0.5")
+                elif np.abs(val-0.1) < val*1.0e-10:
+                    ticklabel.set_text("0.1")
+                elif np.abs(val-0.01) < val*1.0e-10:
+                    ticklabel.set_text("0.01")
+                elif np.abs(val-0.001) < val*1.0e-10:
+                    ticklabel.set_text("0.001")
+                elif np.abs(val-0.0001) < val*1.0e-10:
+                    ticklabel.set_text("0.0001")
+            ticklabels[0].set_text("<" + ticklabels[0].get_text())
                 
                 
-        cb1.ax.set_xticklabels(ticklabels)
-        cb1.set_label('Estimated probability')
+            cb1.ax.set_xticklabels(ticklabels)
+            cb1.set_label('Estimated probability')
     
         self.draw()
         
@@ -189,5 +209,5 @@ class WorldMapCanvas(FigureCanvas):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = WorldMapWindow()
+    ex = WorldMapWidget(map_info.MapInfo())
     sys.exit(app.exec_())

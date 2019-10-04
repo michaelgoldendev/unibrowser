@@ -141,42 +141,44 @@ def add_additional_questions(akinator, mapinfo):
     
 
 def setup_geography_akinator(akinator, mapinfo):
+    quicksetup = True # use True for testing purposes only, speeds-up application loading times.
     
-    # it's important to add the these terminal questions first to maintain a canonical country ordering (i.e. so the code doesn't break)
-    for countryname in mapinfo.locationlist: # add terminal questions
-        qkey = akinator.addquestion('Is your country %s?' % countryname, questiontype=akinator_model.QuestionType.TERMINAL)
-        for countryname_secondary in mapinfo.locationlist:
-            if countryname == countryname_secondary:
-                akinator.addanswer(qkey, countryname_secondary, [1.0, 0.0])
-            else:
-                akinator.addanswer(qkey, countryname_secondary, [0.0, 1.0])
-    
-    internetcode_to_ciacountryname = {}
-    
-    ciacountrycode_tocountrycode = {}
-    ciacountrycode_tocountrycode["UK"] = "GB"
-    ciacountrycode_tocountrycode["SU"] = "RU"
-    
-    # Adds a large number of questions from the CIA fact book
-    jsondict = json.load(open(questionsfile,"r"))
-    nocode = {}
-    for (questionttext, countryname, countrycodestring, answervec) in jsondict:
-        #if not questionttext.startswith("Does your country border"):
-        m = re.match(r'^.*?\.(..).*$', countrycodestring)
-        countrycode = countrycodestring[0:2]
-        if m != None:
-            countrycode = m[1]
+    if quicksetup:
+        # it's important to add the these terminal questions first to maintain a canonical country ordering (i.e. so the code doesn't break)
+        for countryname in mapinfo.locationlist: # add terminal questions
+            qkey = akinator.addquestion('Is your country %s?' % countryname, questiontype=akinator_model.QuestionType.TERMINAL)
+            for countryname_secondary in mapinfo.locationlist:
+                if countryname == countryname_secondary:
+                    akinator.addanswer(qkey, countryname_secondary, [1.0, 0.0])
+                else:
+                    akinator.addanswer(qkey, countryname_secondary, [0.0, 1.0])
         
-        countrycode = ciacountrycode_tocountrycode.get(countrycode, countrycode)
+        internetcode_to_ciacountryname = {}
+        
+        ciacountrycode_tocountrycode = {}
+        ciacountrycode_tocountrycode["UK"] = "GB"
+        ciacountrycode_tocountrycode["SU"] = "RU"
+        
+        # Adds a large number of questions from the CIA fact book
+        jsondict = json.load(open(questionsfile,"r"))
+        nocode = {}
+        for (questionttext, countryname, countrycodestring, answervec) in jsondict:
+            #if not questionttext.startswith("Does your country border"):
+            m = re.match(r'^.*?\.(..).*$', countrycodestring)
+            countrycode = countrycodestring[0:2]
+            if m != None:
+                countrycode = m[1]
             
-        internetcode_to_ciacountryname[countrycode] = countryname
-        if countrycode in mapinfo.twolettercountrycode_to_countryname:
-            countryname = mapinfo.twolettercountrycode_to_countryname[countrycode]
-            akinator.addquestionanswer(questionttext, countryname, answervec, questiontype=akinator_model.QuestionType.NONTERMINAL)
-        else:
-            nocode[countrycode] = countryname
-    #print(internetcode_to_ciacountryname)
-            print(nocode)
+            countrycode = ciacountrycode_tocountrycode.get(countrycode, countrycode)
+                
+            internetcode_to_ciacountryname[countrycode] = countryname
+            if countrycode in mapinfo.twolettercountrycode_to_countryname:
+                countryname = mapinfo.twolettercountrycode_to_countryname[countrycode]
+                akinator.addquestionanswer(questionttext, countryname, answervec, questiontype=akinator_model.QuestionType.NONTERMINAL)
+            else:
+                nocode[countrycode] = countryname
+        #print(internetcode_to_ciacountryname)
+                print(nocode)
     
     add_demographic_info_from_shape_data(akinator, mapinfo)
     add_additional_questions(akinator, mapinfo)
