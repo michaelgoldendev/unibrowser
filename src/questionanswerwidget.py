@@ -85,8 +85,8 @@ class AnswerPanelWidget(QWidget):
             timer.timeout.connect(partial(self.flash,index))
         
         self.blockrects = []
-        self.panelpadding = 5
-        self.blockwidth = 160
+        self.panelpadding = 2
+        self.blockwidth = 120
         self.blockheight = self.blockwidth
         self.blockrounding = 7
         self.buttonspacing = 500
@@ -190,9 +190,10 @@ class AnswerPanelWidget(QWidget):
         pressedborderpen = QPen(QColor(25,25,25,255), 3)
         
         unselectedcolor = Qt.white
-        selectedcolor = Qt.blue
         mouseovercolor = QColor(225,225,225,255)
-        pressedcolor = QColor(175,175,175,255)
+        pressedcolor = QColor(175,175,175,255)        
+        selectedcolor = QColor(255,128,128,255)
+        selectedcolor = pressedcolor
         
         fontpenblack = QPen(QColor(0,0,0,225))
         fontpentransparent = QPen(QColor(0,0,0,30))
@@ -294,7 +295,7 @@ class QuestionAnswerWidget(QWidget):
             if elapsedtimequestionsecs > self.warningtimesecs:
                 self.label.setText("%s\n(%d seconds)" % (self.parent.questiontext, elapsedtimequestionsecs-self.warningtimesecs))
             else:
-                self.label.setText("%s\nNow focus on your answer and try count the flashes." % self.parent.questiontext)
+                self.label.setText("%s\nNow focus on your best guess and count the flashes." % self.parent.questiontext)
             return elapsedtimequestionmillis
     
     

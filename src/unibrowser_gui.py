@@ -46,22 +46,36 @@ class MainWindow(QWidget):
         
         mainlayout = QHBoxLayout()
         
-        leftframe =  QFrame()    
-                
+        leftframe =  QFrame()
         leftframelayout = QVBoxLayout()
         leftframelayout.setAlignment(Qt.AlignCenter)
-        
-        mainlayout.addWidget(leftframe)        
-        
         leftframelayout.addWidget(self.questionanswerpanel)        
         leftframelayout.addWidget(self.canvas)        
         leftframe.setLayout(leftframelayout)
         
-        mainlayout.addWidget(self.listwidget)
+        rightframe = QFrame()
+        rightframelayout = QVBoxLayout()
+        rightframelayout.setAlignment(Qt.AlignCenter)
+        labelfont = QFont()
+        labelfont.setPointSize(18)
+        #labelfont.setBold(True)
+        #labelfont.setWeight(70)
+        rankinglabel = QLabel("Country ranking")
+        rankinglabel.setFont(labelfont)
+        rankinglabel.setAlignment(Qt.AlignCenter)
+        rightframelayout.addWidget(rankinglabel)
+        rightframelayout.addWidget(self.listwidget)
+        rightframe.setLayout(rightframelayout)
         
-           
+        mainlayout.addWidget(leftframe, 1)
+        mainlayout.addWidget(rightframe)     
+        
+      
+        
+        
+        self.updateWorldMap(self.model)
         self.setLayout(mainlayout)
-        #self.nextquestion()
+        
         
         self.show()    
         
@@ -108,7 +122,7 @@ class MainWindow(QWidget):
         for (state,prob) in zip(akinator.statelist, akinator.stateprobs):
             self.canvas.setlocationcolourbyvalue(state,prob,drawimmediately=False)
         self.canvas.draw()
-        self.listwidget.updatelist(akinator.stateprobs, self.mapinfo)
+        self.listwidget.updatelist(akinator.stateprobs, self.mapinfo, top=1000)
     
     def nextquestion(self):
         self.qkey = self.model.getnextquestion()

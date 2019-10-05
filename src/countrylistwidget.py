@@ -15,11 +15,19 @@ class QCustomWidget (QWidget):
         
         self.hboxlayout  = QHBoxLayout()
         
+        self.rankinglabel = QLabel("1")
         self.iconlabel = QLabel()
         self.countrylabel = QLabel()
         self.colourlabel = QLabel()
         self.problabel = QLabel()
         
+        
+        rankingfont = QFont()
+        rankingfont.setPointSize(9)
+        #rankingfont.setBold(True)
+        self.rankinglabel.setFont(rankingfont)
+        self.rankinglabel.setStyleSheet("color: #666666;")
+        self.rankinglabel.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         
         countryfont = QFont()
         countryfont.setPointSize(12)
@@ -27,16 +35,18 @@ class QCustomWidget (QWidget):
         #countryfont.setWeight(20)
         self.countrylabel.setFont(countryfont)
         
+        
         probfont = QFont()
         probfont.setPointSize(10)
         #probfont.setBold(True)
         #countryfont.setWeight(20)
         self.problabel.setFont(probfont)
         
+        #self.hboxlayout.addWidget(self.rankinglabel, 0)
         self.hboxlayout.addWidget(self.iconlabel, 0)
         self.hboxlayout.addWidget(self.countrylabel, 1)
-        self.hboxlayout.addWidget(self.colourlabel, 2)
-        self.hboxlayout.addWidget(self.problabel, 3)
+        self.hboxlayout.addWidget(self.colourlabel, 0)
+        self.hboxlayout.addWidget(self.problabel, 1)
         
         self.setLayout(self.hboxlayout)
 
@@ -60,6 +70,13 @@ class CountryListWidget (QWidget):
         
         layout = QHBoxLayout()
         self.listwidget = QListWidget(self)
+        #self.listwidget.setStyleSheet('background: #f9f9f9;')
+        self.listwidget.setStyleSheet("""        
+                                    QListWidget::item:disabled
+                                    {                               
+                                        background: #f7f7f7;
+                                    }
+                                     """)
         layout.addWidget(self.listwidget)
         self.setLayout(layout)
         
@@ -78,13 +95,19 @@ class CountryListWidget (QWidget):
 
     def __updatelist(self, countrylist):
         self.listwidget.clear()
-        for icon, country, color, prob in countrylist:            
+        for (rank, (icon, country, color, prob)) in enumerate(countrylist):            
             customwidget = QCustomWidget()
+            #customwidget.rankinglabel.setText("%d" % (rank+1))
+            #customwidget.rankinglabel.setFixedWidth(25)
+            
             customwidget.iconlabel.setPixmap(icon)
             customwidget.iconlabel.setFixedWidth(70)
+            customwidget.iconlabel.setStyleSheet('background: transparent;')
             
             customwidget.countrylabel.setText(country)
             customwidget.countrylabel.setFixedWidth(200)
+            customwidget.countrylabel.setStyleSheet('background: transparent;')
+            
             customwidget.colourlabel.setStyleSheet("background-color:" + color +";")
             customwidget.colourlabel.setFixedWidth(10)
             
@@ -92,9 +115,13 @@ class CountryListWidget (QWidget):
             if prob < 0.01:
                 probtext = '{:.1E}'.format(prob)
             customwidget.problabel.setText(probtext)
+            customwidget.problabel.setStyleSheet('background: transparent;')
             
             customitem = QListWidgetItem(self.listwidget)
             customitem.setSizeHint(customwidget.sizeHint())
+            customitem.setFlags(Qt.NoItemFlags)
+            
+            
             
             self.listwidget.addItem(customitem)
             self.listwidget.setItemWidget(customitem, customwidget)

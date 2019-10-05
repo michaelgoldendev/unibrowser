@@ -28,9 +28,9 @@ class WorldMapCanvas(FigureCanvas):
         self.showLegend = False
         
         self.mapinfo = mapinfo
-        fig = plt.figure(figsize=(width,height))        
+        fig = plt.figure(figsize=(width,height))       
         #plt.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.01)
-        plt.subplots_adjust(left=0.01, right=0.99, top=1.0, bottom=0.0)
+        plt.subplots_adjust(left=0.01, right=0.99, top=1.0, bottom=0.005)
 
         FigureCanvas.__init__(self, fig)
         self.setParent(parent)
