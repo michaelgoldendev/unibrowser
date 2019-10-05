@@ -22,9 +22,109 @@ import map_info
 import countrylistwidget
 from questionanswerwidget import QuestionAnswerWidget
 
+class UnicornIcon(QLabel):
+    
+    def __init__(self, parent):
+        super().__init__(parent)
+        
+        pix = QPixmap("../raw/unibrowser_binoculars_icon-320x501.png")
+        pix = pix.scaledToWidth(64, mode=Qt.SmoothTransformation)
+        self.setPixmap(pix)       
+        self.h = pix.height()
+        self.w = pix.width()
+        print(self.h)
+        
+        self.setGeometry(QRect(0, 0, self.w, self.h))
+        self.setStyleSheet("background-color: rgba(0, 0, 0,0);")
+        
+    def _set_pos(self, pos):
+        
+        self.move(pos.x() - self.w/2, pos.y() - self.h/2)
+
+    pos = pyqtProperty(QPointF, fset=_set_pos)   
+
+class WorldMapWidget(QWidget):
+
+    def __init__(self, mapinfo):
+        super().__init__()
+        self.mapinfo = mapinfo
+        self.left = 0
+        self.top = 0
+        self.title = 'Unibrowser- World Map'
+        #self.width = 1300
+        #self.height = 800
+        self.setStyleSheet("background-color: rgb(255, 255, 255);")
+        
+        self.setWindowTitle(self.title)
+       # self.setGeometry(self.left, self.top, self.width, self.height)
+        mainlayout = QHBoxLayout()
+        
+        leftframe =  QFrame()    
+        leftframelayout = QVBoxLayout()
+        leftframe.setLayout(leftframelayout)
+        mainlayout.addWidget(leftframe)
+        
+        self.answerpanel = QuestionAnswerWidget()
+        #self.answerpanel.setFixedHeight(200)
+        #self.answerpanel.answerclicked.connect(self.answerClickedEvent)
+        leftframelayout.addWidget(self.answerpanel)
+        
+        self.canvas =  WorldMapCanvas(self.mapinfo, parent=self, width=10.5, height=9.5)
+        leftframelayout.addWidget(self.canvas)
+        
+       
+        
+        
+        self.listwidget = countrylistwidget.CountryListWidget()
+        mainlayout.addWidget(self.listwidget)
+        
+        self.setLayout(mainlayout)
+        
+        """
+        self.unicornicon = UnicornIcon(self)
+        self.path = QPainterPath()
+        self.path.moveTo(30, 30)
+        self.path.cubicTo(30, 30, 200, 30, 500, 30)
+        self.initAnimation()
+        """
+        
+        self.show()
+    
+    """
+    def handleButton(self):
+        randomlocation = random.choice(list(self.canvas.patchlistsbylocation.keys()))
+        self.canvas.setlocationcolour(randomlocation, self.canvas.colormap(random.random()))
+    """
+    
+    """
+    def paintEvent(self, e):    
+        
+        qp = QPainter()
+        qp.begin(self)
+        qp.setRenderHint(QPainter.Antialiasing)
+        qp.end()             
+
+        
+    def initAnimation(self):
+        
+        self.anim = QPropertyAnimation(self.unicornicon, b'pos')
+        self.anim.setDuration(1000)
+        
+        self.anim.setStartValue(QPointF(30, 30))
+        
+        vals = [p/100 for p in range(0, 101)]
+
+        for i in vals:
+            self.anim.setKeyValueAt(i, self.path.pointAtPercent(i))  
+                
+        self.anim.setEndValue(QPointF(500, 30))        
+        self.anim.start()
+    """
+        
+
 class WorldMapCanvas(FigureCanvas):
 
-    def __init__(self, mapinfo, parent=None, width=12, height=10, dpi=None):        
+    def __init__(self, mapinfo, parent=None, width=12, height=8, dpi=None):        
         self.showLegend = False
         
         self.mapinfo = mapinfo

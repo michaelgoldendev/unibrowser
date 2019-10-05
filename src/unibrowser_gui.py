@@ -34,8 +34,9 @@ class MainWindow(QWidget):
         self.setWindowTitle("Unibrowser")        
         self.setStyleSheet("background-color: rgb(255, 255, 255);")
         
-        self.canvas =  WorldMapCanvas(self.mapinfo, parent=self, width=8.5, height=7.5)
+        self.canvas =  WorldMapCanvas(self.mapinfo, parent=self, width=10.5, height=9.5)
         self.listwidget = countrylistwidget.CountryListWidget()
+        self.listwidget.setFixedWidth(450)
         
         self.questionanswerpanel = QuestionAnswerWidget(self)
         #self.questionanswerpanel.setFixedHeight(200)
@@ -46,16 +47,19 @@ class MainWindow(QWidget):
         mainlayout = QHBoxLayout()
         
         leftframe =  QFrame()    
+                
         leftframelayout = QVBoxLayout()
+        leftframelayout.setAlignment(Qt.AlignCenter)
+        
+        mainlayout.addWidget(leftframe)        
+        
+        leftframelayout.addWidget(self.questionanswerpanel)        
+        leftframelayout.addWidget(self.canvas)        
         leftframe.setLayout(leftframelayout)
-        mainlayout.addWidget(leftframe)
-        
-        
-        leftframelayout.addWidget(self.questionanswerpanel)
-        leftframelayout.addWidget(self.canvas)
         
         mainlayout.addWidget(self.listwidget)
         
+           
         self.setLayout(mainlayout)
         #self.nextquestion()
         

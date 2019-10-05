@@ -141,9 +141,9 @@ def add_additional_questions(akinator, mapinfo):
     
 
 def setup_geography_akinator(akinator, mapinfo):
-    quicksetup = True # use True for testing purposes only, speeds-up application loading times.
+    quicksetup = False # use True for testing purposes only, speeds-up application loading times.
     
-    if quicksetup:
+    if not quicksetup:
         # it's important to add the these terminal questions first to maintain a canonical country ordering (i.e. so the code doesn't break)
         for countryname in mapinfo.locationlist: # add terminal questions
             qkey = akinator.addquestion('Is your country %s?' % countryname, questiontype=akinator_model.QuestionType.TERMINAL)

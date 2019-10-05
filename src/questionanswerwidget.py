@@ -85,20 +85,21 @@ class AnswerPanelWidget(QWidget):
             timer.timeout.connect(partial(self.flash,index))
         
         self.blockrects = []
-        self.blockwidth = 200
+        self.panelpadding = 5
+        self.blockwidth = 160
         self.blockheight = self.blockwidth
         self.blockrounding = 7
-        self.buttonspacing = 250
+        self.buttonspacing = 500
         self.yoffset = 0
         for (index,ans) in enumerate(self.answers):
-            self.blockrects.append(QRectF(index*(self.blockwidth+self.buttonspacing),  self.yoffset,  self.blockwidth,  self.blockheight))      
+            self.blockrects.append(QRectF(self.panelpadding + index*(self.blockwidth+self.buttonspacing),  self.panelpadding + self.yoffset,  self.blockwidth,  self.blockheight))      
         
         self.facepixmaps = []
         
         self.facepixmaps.append(QPixmap(os.path.abspath(os.path.join(script_path, '../images/faces/jennifer-lawrence.jpg'))).scaledToWidth(self.blockwidth, mode=Qt.SmoothTransformation))
         self.facepixmaps.append(QPixmap(os.path.abspath(os.path.join(script_path, '../images/faces/nicolas-cage.jpg'))).scaledToWidth(self.blockwidth, mode=Qt.SmoothTransformation))
-        self.panelwidth =  self.buttonspacing*(len(self.answers)-1) + self.blockwidth*len(self.answers)
-        self.panelheight = self.blockheight + self.yoffset
+        self.panelwidth =  2*self.panelpadding + self.buttonspacing*(len(self.answers)-1) + self.blockwidth*len(self.answers) 
+        self.panelheight = 2*self.panelpadding + self.blockheight + self.yoffset
         self.setFixedWidth(self.panelwidth)
         self.setFixedHeight(self.panelheight)
         self.mouseinteractionenabled = True
@@ -166,6 +167,19 @@ class AnswerPanelWidget(QWidget):
     def answerClickedEvent(self, event):
         print(event)
         
+    def resetSelected(self):
+        for (index,blockrect) in enumerate(self.blockrects):
+            self.answerstates[index] = 0
+        self.repaint()
+        
+    def setSelected(self, selectedindex):
+        for (index,blockrect) in enumerate(self.blockrects):
+            self.answerstates[index] = 0
+        self.answerstates[selectedindex] = 2
+        self.repaint()
+        
+            
+        
     def redraw(self, event, qp):
         qp.setRenderHint(QPainter.TextAntialiasing)
         qp.setRenderHint(QPainter.HighQualityAntialiasing)
@@ -176,6 +190,7 @@ class AnswerPanelWidget(QWidget):
         pressedborderpen = QPen(QColor(25,25,25,255), 3)
         
         unselectedcolor = Qt.white
+        selectedcolor = Qt.blue
         mouseovercolor = QColor(225,225,225,255)
         pressedcolor = QColor(175,175,175,255)
         
@@ -209,6 +224,8 @@ class AnswerPanelWidget(QWidget):
                 qp.setBrush(brush);
                 qp.drawRoundedRect(blockrect, self.blockrounding, self.blockrounding)
                 qp.setBrush(tempbrush)
+            elif self.answerstates[index] == 2:
+                qp.fillPath(blockpath, selectedcolor)
             else:      
                 qp.fillPath(blockpath, fillcolor)
             
@@ -230,7 +247,7 @@ class QuestionAnswerWidget(QWidget):
         super().__init__()
         self.parent = parent
         
-        self.inputmethod = InputMethod.MOUSE
+        self.inputmethod = InputMethod.POWERSPECTRUM
         
         self.setWindowTitle('Unibrowser')
         self.setMouseTracking(True)
@@ -249,6 +266,7 @@ class QuestionAnswerWidget(QWidget):
         self.questiontimer.timeout.connect(self.updatequestion)
         
         self.bcianimationtimeoutmillis = 6000.0 if RELEASE_VERSION else 1000.0
+        self.choicetimeoutmillis = 4000.0 if RELEASE_VERSION else 2000.0
         
         labelfont = QFont()
         labelfont.setPointSize(16)
@@ -256,17 +274,15 @@ class QuestionAnswerWidget(QWidget):
         #questionfont.setWeight(75)
         self.label = QLabel("")
         self.label.setFont(labelfont)
-        self.setFixedWidth(1000)
         self.label.setAlignment(Qt.AlignCenter)
         self.vboxlayout.addWidget(self.label)
         
         self.answerpanel = AnswerPanelWidget(self.inputmethod)
-        self.vboxlayout.addWidget(self.answerpanel)
-        self.setLayout(self.vboxlayout)
+        self.vboxlayout.addWidget(self.answerpanel)        
         
         self.shownextquestion()
         
-        self.show()
+        self.setLayout(self.vboxlayout)
         
     
     def refreshquestiontext(self):
@@ -284,6 +300,7 @@ class QuestionAnswerWidget(QWidget):
     
     def shownextquestion(self):
         self.parent.nextquestion()
+        self.answerpanel.resetSelected()
         self.refreshquestiontext()
         if self.inputmethod == InputMethod.POWERSPECTRUM:
             self.questiontimer.start(self.timerintervalmillis)
@@ -306,8 +323,8 @@ class QuestionAnswerWidget(QWidget):
         print(self.parent.model.questions[self.parent.qkey])
         print("%s, choice %d" % (answervec,simulatedanswer))
         self.answerpanel.stopBCIanimation()
-        self.answerpanel.answerclicked.emit(simulatedanswer)
-        #self.shownextquestion()
+        self.answerpanel.setSelected(simulatedanswer)
+        QTimer.singleShot(self.choicetimeoutmillis, partial(self.answerpanel.answerclicked.emit, simulatedanswer))
         
 
 if __name__ == '__main__':
