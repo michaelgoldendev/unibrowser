@@ -242,15 +242,16 @@ class AcquisitionWidget(QWidget):
         """
     def saveResult(self, result):
         timestampStr = startdatetime.strftime("%d-%b-%Y_%Hh%Mm%Ss%f")
-        if not os.path.exists('data%s/' % timestampStr):
-            os.makedirs('data%s/' % timestampStr)
+        datafolder = 'data%s/' % timestampStr
+        if not os.path.exists(datafolder):
+            os.makedirs(datafolder)
         
         dateTimeObj = datetime.now()
         timestampStr = dateTimeObj.strftime("%d-%b-%Y.%Hh%Mm%Ss%f")
         focus = "yes"
         if self.noradiobuttion.isChecked():
             focus = "no"
-        resultFileName = "data/data_focus-%s_yes%0.1fHz_no%0.1fHz_%0.1fseconds_%s.csv" % (focus, self.spinboxyes.value(), self.spinboxno.value(), self.spinboxacquistiontime.value(), timestampStr)
+        resultFileName = "%s/data_focus-%s_yes%0.1fHz_no%0.1fHz_%0.1fseconds_%s.csv" % (datafolder,focus, self.spinboxyes.value(), self.spinboxno.value(), self.spinboxacquistiontime.value(), timestampStr)
         np.savetxt(resultFileName, result, delimiter=",")
         
         """
