@@ -134,7 +134,7 @@ class AcquisitionWidget(QWidget):
         self.spinboxyes.setMinimum(0.1)
         self.spinboxyes.setMaximum(100.0)
         self.spinboxyes.setSingleStep(0.1)
-        self.spinboxyes.setValue(9.0)
+        self.spinboxyes.setValue(3.0)
         self.spinboxyes.setDecimals(1)
         self.yespinnerlayout.addWidget(self.spinboxyes) 
         self.yespinnerlayout.addStretch(1)
@@ -152,7 +152,7 @@ class AcquisitionWidget(QWidget):
         self.spinboxno.setMaximum(100.0)
         self.spinboxno.setSingleStep(0.1)
         self.spinboxno.setDecimals(1)
-        self.spinboxno.setValue(14.0)
+        self.spinboxno.setValue(5.0)
         self.nopinnerlayout.addWidget(self.spinboxno)    
         self.nopinnerlayout.addStretch(1)
         self.vboxlayout.addWidget(self.nospinnerframe)
@@ -253,6 +253,10 @@ class AcquisitionWidget(QWidget):
             focus = "no"
         resultFileName = "%s/data_focus-%s_yes%0.1fHz_no%0.1fHz_%0.1fseconds_%s.csv" % (datafolder,focus, self.spinboxyes.value(), self.spinboxno.value(), self.spinboxacquistiontime.value(), timestampStr)
         np.savetxt(resultFileName, result, delimiter=",")
+        
+        fout = open("results.csv", "a")
+        fout.write("%s,%0.1f,%0.1f,%0.1f,%s\n" % (focus, self.spinboxyes.value(), self.spinboxno.value(), self.spinboxacquistiontime.value(), timestampStr))
+        fout.close()
         
         """
         fout = open(, "w")

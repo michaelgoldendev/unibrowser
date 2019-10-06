@@ -175,19 +175,24 @@ def add_additional_questions(akinator, mapinfo):
     """
     print("Olympic games")
     hostedolympicgames = ["United States", "France", "Germany", "Greece", "Japan", "Italy", "United Kingdom", "Canada", "Australia", "Russia", "South Korea", "Switzerland", "Norway", "Austria", "China", "Brazil", "Sweden", "Belgium", "Netherlands", "Finland", "Mexico", "Spain", "Yugoslavia"]
+    wellknownolympichosts = ["United States", "France", "Germany", "Greece", "Japan", "United Kingdom", "Australia", "Russia", "South Korea", "China", "Brazil"]
     if country in hostedolympicgames:
         if country not in mapinfo.infobycountryname:
             print("Country cannot be found: ", country)
             
-    qkey = akinator.addquestion('Has your country hosted the summer of winter Olympic games?')
+    qkey = akinator.addquestion('Has your country hosted the summer or winter Olympic games?')
     for countryname in mapinfo.infobycountryname:
         if countryname in hostedolympicgames:
-            akinator.addanswer(qkey, countryname, [0.90, 0.10])
+            if countryname in wellknownolympichosts:
+                akinator.addanswer(qkey, countryname, [0.95, 0.05])
+            else:
+                akinator.addanswer(qkey, countryname, [0.70, 0.30])
         else:
             akinator.addanswer(qkey, countryname, [0.1, 0.90])
-            
-    
-
+            if countryname in wellknownolympichosts:
+                akinator.addanswer(qkey, countryname, [0.05, 0.95])
+            else:
+                akinator.addanswer(qkey, countryname, [0.30, 0.70])
     
 
 def setup_geography_akinator(akinator, mapinfo):
