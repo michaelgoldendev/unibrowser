@@ -17,7 +17,7 @@ from sklearn import metrics
 freq = 250
 freqlist = [5,8]
 
-coi = np.arange(8)
+coi = np.hstack([np.arange(2), np.arange(3,8)])
 lcoi = len(coi)
 
 # %% no
@@ -103,6 +103,7 @@ for fE in filteredEEG:
         freqs, psd = welch(fE[:,i], freq, nperseg=freq*4)
         plt.plot(freqs, psd, lw=2,label=str(coi[i]))
         plt.xlim(left=0, right=20)
+        plt.legend()
         
 # %% CCA approach
 
@@ -132,7 +133,7 @@ for f in range(len(freqlist)):
 for t in range(len(filteredEEG)):
     for f in range(len(freqlist)):
         cca.fit(filteredEEG[t], Yl[f])
-        scores[t, f] = metrics.r2_score(Y,cca.predict(X))#cca.score(X,Y)
+        scores[t, f] = metrics.r2_score(Yl[f],cca.predict(filteredEEG[t]))#cca.score(X,Y)
         
 fig, ax = plt.subplots()
 # plt.imshow(scores - np.mean(scores,1).reshape(1,-1).transpose())
