@@ -9,6 +9,7 @@ import random
 from functools import partial
 import math
 import os
+import numpy as np
 
 def samplediscrete(probabilityvec):
     r = random.random()*sum(probabilityvec)
@@ -248,7 +249,7 @@ class QuestionAnswerWidget(QWidget):
         super().__init__()
         self.parent = parent
 
-        self.inputmethod =  InputMethod.MOUSE # InputMethod.MOUSE, InputMethod.SSVEP
+        self.inputmethod =  InputMethod.SSVEP # InputMethod.MOUSE, InputMethod.SSVEP
         
         self.setWindowTitle('Unibrowser')
         self.setMouseTracking(True)
@@ -320,7 +321,8 @@ class QuestionAnswerWidget(QWidget):
     
     def stopBCI(self):
         answervec = self.parent.model.answerdict[('South Africa',self.parent.qkey)]
-        simulatedanswer = samplediscrete(answervec)
+        #simulatedanswer = samplediscrete(answervec)
+        simulatedanswer = np.argmax(answervec)
         print(self.parent.model.questions[self.parent.qkey])
         print("%s, choice %d" % (answervec,simulatedanswer))
         self.answerpanel.stopBCIanimation()

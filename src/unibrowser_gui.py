@@ -14,6 +14,8 @@ from questionanswerwidget import QuestionAnswerWidget
 from questionanswerwidget import Answer
 import countrylistwidget
 
+from akinator_model import QuestionType
+
 import os
 script_path = os.path.dirname(os.path.abspath( __file__ ))
 
