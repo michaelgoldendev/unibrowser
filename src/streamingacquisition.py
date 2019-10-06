@@ -75,6 +75,9 @@ class UnicornStreamingAcquisition:
             if i % 1000 == 0:
                 print(i,self.captureframes)
     
+    def cancelAcquisition(self):
+        self.captureframes = 0
+    
     
     def getNseconds(self, numseconds):
         numberOfGetDataCalls = int(numseconds * UnicornPy.SamplingRate / self.FrameLength)
