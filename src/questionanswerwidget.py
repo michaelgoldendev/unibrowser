@@ -2,8 +2,8 @@ import sys
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+#from PyQt5.QtChart import *
 
-from akinator_model import QuestionType
 from enum import IntEnum
 import random
 from functools import partial
@@ -247,7 +247,7 @@ class QuestionAnswerWidget(QWidget):
     def __init__(self, parent):
         super().__init__()
         self.parent = parent
-        
+
         self.inputmethod =  InputMethod.MOUSE # InputMethod.MOUSE, InputMethod.SSVEP
         
         self.setWindowTitle('Unibrowser')
@@ -321,21 +321,11 @@ class QuestionAnswerWidget(QWidget):
     def stopBCI(self):
         answervec = self.parent.model.answerdict[('South Africa',self.parent.qkey)]
         simulatedanswer = samplediscrete(answervec)
-        
         print(self.parent.model.questions[self.parent.qkey])
         print("%s, choice %d" % (answervec,simulatedanswer))
         self.answerpanel.stopBCIanimation()
         self.answerpanel.setSelected(simulatedanswer)
-        
-        questiontype = self.parent.model.questiontypes[self.parent.qkey]
-        if questiontype == QuestionType.TERMINAL:
-            print("HELLO")
-        else:
-            QTimer.singleShot(self.choicetimeoutmillis, partial(self.answerpanel.answerclicked.emit, simulatedanswer))
-        
-    def terminateGame(self):
-        print("show termination screen")
-        
+        QTimer.singleShot(self.choicetimeoutmillis, partial(self.answerpanel.answerclicked.emit, simulatedanswer))
         
 
 if __name__ == '__main__':
