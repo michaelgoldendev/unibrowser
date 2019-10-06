@@ -14,6 +14,9 @@ from questionanswerwidget import QuestionAnswerWidget
 from questionanswerwidget import Answer
 import countrylistwidget
 
+import os
+script_path = os.path.dirname(os.path.abspath( __file__ ))
+
 class MainWindow(QWidget):
     
     def __init__(self):
@@ -77,7 +80,7 @@ class MainWindow(QWidget):
         self.setLayout(mainlayout)
         
         
-        self.show()    
+        self.show()
         
         
     
@@ -116,7 +119,9 @@ class MainWindow(QWidget):
         #self.nextquestion()
         questiontype = self.model.questiontypes[self.qkey]
         if questiontype == QuestionType.TERMINAL:
-            print("Terminating with %s" % answer)
+            if answer == Answer.YES:
+                self.canvas.showUnicorn()
+                self.questionanswerpanel.label.setText("The Unibrow sees all.")
         else:
             self.questionanswerpanel.shownextquestion()
         QApplication.restoreOverrideCursor()
@@ -162,7 +167,6 @@ class MainWindow(QWidget):
         self.updateWorldMap(self.model)
         
         return self.qkey
-            
         
 if __name__ == '__main__':    
     app = QApplication(sys.argv)

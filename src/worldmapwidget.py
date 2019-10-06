@@ -14,17 +14,21 @@ import matplotlib.cm
 from matplotlib import rcParams, cycler
 import matplotlib as mpl
 import matplotlib.animation as animation
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
 import numpy as np
 
 import map_info
-import countrylistwidget
 from questionanswerwidget import QuestionAnswerWidget
 
-class WorldMapCanvas(FigureCanvas):
+import os
+script_path = os.path.dirname(os.path.abspath( __file__ ))
 
+class WorldMapCanvas(FigureCanvas):
     def __init__(self, mapinfo, parent=None, width=12, height=10, dpi=None):        
         self.showLegend = False
+        self.image = plt.imread(os.path.abspath(os.path.join(script_path, '../images/unibrowser_binoculars_icon-1178x1844.png')))
+        self.oi = OffsetImage(self.image, zoom = 0.28)
         
         self.mapinfo = mapinfo
         fig = plt.figure(figsize=(width,height))       
@@ -91,6 +95,11 @@ class WorldMapCanvas(FigureCanvas):
                 
             cb1.ax.set_xticklabels(ticklabels)
             cb1.set_label('Estimated probability')
+        
+       
+        self.box = AnnotationBbox(self.oi, (self.ax.get_xlim()[1]/2.0, self.ax.get_ylim()[1]/2.0), frameon=False)
+
+        #ani = animation.FuncAnimation(fig, self.animate, interval = 50, blit = False)
     
         self.draw()
         
@@ -105,6 +114,16 @@ class WorldMapCanvas(FigureCanvas):
         if drawimmediately:
             self.figure.canvas.blit(self.ax.bbox) # fast way of updating canvas
         #self.draw() # slow way of updating canvas
+    
+    def showUnicorn(self):        
+        self.ax.add_artist(self.box)
+        self.draw()
+        
+        
+    """
+    def animate(self, i) : 
+        self.box.set_position((i*10000, i*10000))
+    """
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

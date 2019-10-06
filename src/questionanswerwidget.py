@@ -50,7 +50,7 @@ class PausableQTimer(QTimer):
 class InputMethod(IntEnum):
     MOUSE = 0
     P300SPELLING = 1
-    POWERSPECTRUM = 2
+    SSVEP = 2
     
 class AnswerPanelWidget(QWidget):
     
@@ -248,7 +248,7 @@ class QuestionAnswerWidget(QWidget):
         super().__init__()
         self.parent = parent
         
-        self.inputmethod =  InputMethod.MOUSE # InputMethod.MOUSE, InputMethod.POWERSPECTRUM
+        self.inputmethod =  InputMethod.MOUSE # InputMethod.MOUSE, InputMethod.SSVEP
         
         self.setWindowTitle('Unibrowser')
         self.setMouseTracking(True)
@@ -289,7 +289,7 @@ class QuestionAnswerWidget(QWidget):
     def refreshquestiontext(self):
         if self.inputmethod == InputMethod.MOUSE:
             self.label.setText(self.parent.questiontext)
-        elif self.inputmethod == InputMethod.POWERSPECTRUM:
+        elif self.inputmethod == InputMethod.SSVEP:
             elapsedtimequestionmillis = self.questionframe*self.timerintervalmillis
             elapsedtimequestionsecs = math.ceil((self.questiontimeoutmillis-elapsedtimequestionmillis)/1000.0)
             if elapsedtimequestionsecs > self.warningtimesecs:
@@ -303,7 +303,7 @@ class QuestionAnswerWidget(QWidget):
         self.parent.nextquestion()
         self.answerpanel.resetSelected()
         self.refreshquestiontext()
-        if self.inputmethod == InputMethod.POWERSPECTRUM:
+        if self.inputmethod == InputMethod.SSVEP:
             self.questiontimer.start(self.timerintervalmillis)
     
     def updatequestion(self):
