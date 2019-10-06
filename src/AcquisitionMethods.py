@@ -8,16 +8,17 @@ Created on Sun Oct  6 14:52:14 2019
 
 import UnicornPy
 import numpy as np
-from scipy.signal import butter, sosfilt, iirnotch, welch
+from scipy.signal import butter, sosfilt, iirnotch, welch, lfilter
 import matplotlib.pyplot as plt
 from scipy.signal import freqz
+import time
 
 # %% Set up
 
 # Specifications for the data acquisition.
 TestsignaleEnabled = False;
 FrameLength = 1;
-AcquisitionDurationInSeconds = 120;
+AcquisitionDurationInSeconds = 80;
 
 # Get available device serials.
 deviceList = UnicornPy.GetAvailableDevices(True)
@@ -99,6 +100,10 @@ del receiveBuffer
 # Close device.
 print("Disconnected from Unicorn")
 
+fname = 'bci_data-'+str(int(time.time()))+'.csv'
+np.savetxt(fname, bci_data)
+
+
 # %% filtering
 #%matplotlib qt
 coi = np.arange(8)
@@ -115,11 +120,13 @@ def butter_bandpass(lowcut, highcut, fs, order=5):
     return sos
 
 lowcut = 4
-highcut = 40
+highcut = 20
 sos = butter_bandpass(lowcut, highcut, freq, order=15)
 filteredEEG = EEG + 0.
 for i in range(lcoi):
     filteredEEG[:,i] = sosfilt(sos, EEG[:,i])
+    a,b = iirnotch(50.0,30,freq)
+    filteredEEG[:,i] = lfilter(b, a, filteredEEG[:,i])
 
 # %% plot power spec
 filteredEEG = filteredEEG[30*250-1:,:]    
