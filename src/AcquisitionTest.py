@@ -1,9 +1,16 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Oct  6 13:31:44 2019
+
+@author: Vilsnk
+"""
+
 import UnicornPy
 import numpy as np
 
-# Specifications for the data acquisition.
-#-------------------------------------------------------------------------------------
-TestsignaleEnabled = True;
+    # Specifications for the data acquisition.
+    #-------------------------------------------------------------------------------------
+TestsignaleEnabled = False;
 FrameLength = 1;
 AcquisitionDurationInSeconds = 10;
 DataFile = "data.csv";
@@ -79,7 +86,7 @@ try:
 
         # Acquisition loop.
         #-------------------------------------------------------------------------------------
-        big_data = np.array()
+        big_data = np.zeros((1,17))
         for i in range (0,numberOfGetDataCalls):
             # Receives the configured number of samples from the Unicorn device and writes it to the acquisition buffer.
             device.GetData(FrameLength,receiveBuffer,receiveBufferBufferLength)
@@ -87,7 +94,7 @@ try:
             # Convert receive buffer to numpy float array 
             data = np.frombuffer(receiveBuffer, dtype=np.float32, count=numberOfAcquiredChannels * FrameLength)
             data = np.reshape(data, (FrameLength, numberOfAcquiredChannels))
-            big_data = np.vstack(big_data,data)
+            big_data = np.vstack([big_data,data])
             np.savetxt(file,data,delimiter=',',fmt='%.3f',newline='\n')
             
             # Update console to indicate that the data acquisition is running.
@@ -113,7 +120,6 @@ try:
 
         # Close device.
         #-------------------------------------------------------------------------------------
-        del device
         print("Disconnected from Unicorn")
 
 except Unicorn.DeviceException as e:
@@ -123,5 +129,5 @@ except Exception as e:
 
 input("\n\nPress ENTER key to exit")
 
-#execute main
-main()
+EEG = big_data[100:,:8]
+mean_ref = np.mean(EEG,axis=1)
