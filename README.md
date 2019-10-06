@@ -4,11 +4,12 @@
 - Python 3.6 or higher
 - We recommend that you use [Anaconda](https://www.anaconda.com/) to install the following Python 3 packages:
   - numpy (1.15.4 or higher)
+  - scipy (1.3.1 or higher)
   - PyQT5 (5.9.2 or higher)
   - basemap (1.2.0 or higher)  
   - These packages can be installed using the Anaconda Prompt as follows:
     ```console
-    conda install numpy pyqt basemap
+    conda install numpy scipy pyqt basemap
     ```
 
 ## Usage
