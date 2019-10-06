@@ -12,7 +12,7 @@ from scipy.signal import butter, sosfilt, iirnotch, welch, lfilter
 import matplotlib.pyplot as plt
 from scipy.signal import freqz
 import time
-
+from sklearn.cross_decomposition import CCA
 # %% Set up
 
 # Specifications for the data acquisition.
@@ -119,6 +119,18 @@ def butter_bandpass(lowcut, highcut, fs, order=5):
     sos = butter(order, [low, high], btype='band',output='sos')
     return sos
 
+def freq_basis(f, sr, T):
+    # T is length of time interval, sr is sample freuqency
+    time = np.linspace(0,T,T*sr)
+    
+    for i in range(1,5):
+        if i == 1:
+            Y =  np.vstack([np.sin(2*np.pi*f*time*i), np.cos(2*np.pi*f*time*i)])
+        else:
+            Y = np.vstack([Y, np.sin(2*np.pi*f*time*i), np.cos(2*np.pi*f*time*i)])
+    
+    return Y.transpose()
+
 lowcut = 4
 highcut = 20
 sos = butter_bandpass(lowcut, highcut, freq, order=15)
@@ -128,14 +140,32 @@ for i in range(lcoi):
     a,b = iirnotch(50.0,30,freq)
     filteredEEG[:,i] = lfilter(b, a, filteredEEG[:,i])
 
-# %% plot power spec
-filteredEEG = filteredEEG[30*250-1:,:]    
+filteredEEG = filteredEEG[30*freq:,:]  
+
+# %% plot power spec  
 for i in range(lcoi):
     freqs, psd = welch(filteredEEG[:,i], freq, nperseg=freq*4)
     plt.plot(freqs[:-1], psd[:-1], lw=2,label=str(coi[i]))
     plt.legend()
     
     
-# %% soome tests
+# %% CCA approach
+freqlist = [7,8,13]
+cca = CCA(n_components=1)
+scores = np.zeros(len(freqlist))
+
+# X : array-like, shape = [n_samples, n_features]
+# Y : array-like, shape = [n_samples, n_targets]
+for f in range(len(freqlist)):
+    X = filteredEEG
+    Y = freq_basis(freqlist[f], freq, int(len(filteredEEG)/freq))
+    cca.fit(X, Y)
+    scores[f] = cca.score(X,Y)
+        
+#fig, ax = plt.subplots(1, 1, figsize=(12, 4))
+#plt.imshow(scores)
+
+print(np.argmax(scores) + 1)
+print(scores)
     
     
