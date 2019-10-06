@@ -15,6 +15,7 @@ from sklearn.cross_decomposition import CCA
 from sklearn import metrics
 import os
 
+freqlist = [5,12]
 freq = 250
 lowcut = 4
 highcut = 30
@@ -32,21 +33,21 @@ lcoi = len(coi)
 #         "data/data_focus-no_yes8.0Hz_no5.0Hz_15.0seconds_06-Oct-2019.21h18m32s870917.csv",\
 #         "data/data_focus-no_yes5.0Hz_no8.0Hz_15.0seconds_06-Oct-2019.21h17m23s077029.csv"]
 
-names = ["data06-Oct-2019_21h45m45s703578/data_focus-yes_yes8.0Hz_no5.0Hz_15.0seconds_06-Oct-2019.21h38m32s019759.csv",\
-         "data06-Oct-2019_21h45m45s703578/data_focus-yes_yes8.0Hz_no5.0Hz_15.0seconds_06-Oct-2019.21h35m53s417367.csv",\
-         "data06-Oct-2019_21h45m45s703578/data_focus-yes_yes5.0Hz_no8.0Hz_15.0seconds_06-Oct-2019.21h39m37s155413.csv",\
-         "data06-Oct-2019_21h45m45s703578/data_focus-yes_yes5.0Hz_no8.0Hz_15.0seconds_06-Oct-2019.21h36m57s816745.csv",\
-         "data06-Oct-2019_21h45m45s703578/data_focus-no_yes8.0Hz_no5.0Hz_15.0seconds_06-Oct-2019.21h39m02s131899.csv",\
-         "data06-Oct-2019_21h45m45s703578/data_focus-no_yes8.0Hz_no5.0Hz_15.0seconds_06-Oct-2019.21h36m22s510052.csv",\
-         "data06-Oct-2019_21h45m45s703578/data_focus-no_yes5.0Hz_no8.0Hz_15.0seconds_06-Oct-2019.21h40m04s170801.csv",\
-         "data06-Oct-2019_21h45m45s703578/data_focus-no_yes5.0Hz_no8.0Hz_15.0seconds_06-Oct-2019.21h37m28s339114.csv"]
+names = ["data_focus-no_yes5.0Hz_no12.0Hz_15.0seconds_06-Oct-2019.21h48m50s451534.csv",\
+         "data_focus-no_yes5.0Hz_no12.0Hz_15.0seconds_06-Oct-2019.21h49m50s067700.csv",\
+         "data_focus-no_yes12.0Hz_no5.0Hz_15.0seconds_06-Oct-2019.21h50m48s928173.csv",\
+         "data_focus-no_yes12.0Hz_no5.0Hz_15.0seconds_06-Oct-2019.21h51m34s971764.csv",\
+         "data_focus-yes_yes5.0Hz_no12.0Hz_15.0seconds_06-Oct-2019.21h48m26s609510.csv",\
+         "data_focus-yes_yes5.0Hz_no12.0Hz_15.0seconds_06-Oct-2019.21h49m24s415637.csv",\
+         "data_focus-yes_yes12.0Hz_no5.0Hz_15.0seconds_06-Oct-2019.21h50m26s364628.csv",\
+         "data_focus-yes_yes12.0Hz_no5.0Hz_15.0seconds_06-Oct-2019.21h51m11s695088.csv"]
 
-targets = np.array([8, 8, 5, 5, 5, 5, 8, 8]);
+targets = np.array([12, 12, 5, 5, 5, 5, 12, 12]);
 targetsidx = np.array([1,1,0,0,0,0,1,1]);
 
 EEG = []
 for s in names:
-    E = np.loadtxt(s, delimiter=",")
+    E = np.loadtxt('C:/Users/Vilsnk/3D Objects/unibrowser/src/data06-Oct-2019_21h45m45s703578/'+s, delimiter=",")
     E = E[1:,coi]
     E = E - np.mean(E,0).reshape(1,-1) 
     E = E - np.mean(E,1).reshape(-1,1)
