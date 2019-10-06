@@ -61,4 +61,4 @@ def process_EEG(E,yesfreq,nofreq):
     scoreno = metrics.r2_score(Yno,cca.predict(fE))
     logratio = np.log2(scoreyes/scoreno)
     
-    return logratio
+    return (logratio,scoreyes,scoreno)
