@@ -228,7 +228,6 @@ class AcquisitionWidget(QWidget):
         worker.signals.result.connect(self.saveResult)
         worker.signals.error.connect(self.cancelBCI)
         worker.signals.finished.connect(self.stopBCI)
-        #worker.signals.progress.connect(self.progress_fn)
         self.threadpool.start(worker)
         """
         
