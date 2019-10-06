@@ -242,7 +242,7 @@ class AcquisitionWidget(QWidget):
         QTimer.singleShot(self.bcianimationtimeoutmillis, self.stopBCI)
         """
     def saveResult(self, result):
-        logratio = process_EEG(result, self.spinboxyes.value(), self.spinboxno.value())
+        logratio,scoreyes,scoreno = process_EEG(result, self.spinboxyes.value(), self.spinboxno.value())
         timestampStr = startdatetime.strftime("%d-%b-%Y_%Hh%Mm%Ss%f")
         datafolder = 'data%s/' % timestampStr
         if not os.path.exists(datafolder):
@@ -257,7 +257,7 @@ class AcquisitionWidget(QWidget):
         np.savetxt(resultFileName, result, delimiter=",")
         
         fout = open("%s/results.csv" % datafolder, "a")
-        fout.write("%s,%0.1f,%0.1f,%0.1f,%s,%0.3f\n" % (focus, self.spinboxyes.value(), self.spinboxno.value(), self.spinboxacquistiontime.value(), timestampStr, logratio))
+        fout.write("%s,%0.1f,%0.1f,%0.1f,%s,%0.3f,%0.3f,%0.3f\n" % (focus, self.spinboxyes.value(), self.spinboxno.value(), self.spinboxacquistiontime.value(), timestampStr, logratio,scoreyes,scoreno))
         fout.close()
         
         """
