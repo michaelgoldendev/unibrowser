@@ -20,7 +20,7 @@ from datetime import datetime
 
 RELEASE_VERSION = True
 
-#from UnicornStreamingAcquisition
+from streamingacquisition import UnicornStreamingAcquisition
 
 
 class WorkerSignals(QObject):
@@ -165,7 +165,7 @@ class AcquisitionWidget(QWidget):
         self.acquistiontimepinnerlayout.addWidget(self.labelacquistiontime)        
         self.spinboxacquistiontime = QDoubleSpinBox()
         self.spinboxacquistiontime.setSingleStep(0.5)
-        self.spinboxacquistiontime.setValue(60.0)
+        self.spinboxacquistiontime.setValue(15.0)
         self.spinboxacquistiontime.setMinimum(0.5)
         self.spinboxacquistiontime.setMaximum(100000000.0)
         self.spinboxacquistiontime.setDecimals(1)
@@ -200,6 +200,14 @@ class AcquisitionWidget(QWidget):
         self.setLayout(self.vboxlayout)
         
         self.threadpool = QThreadPool()
+        self.streamingacquisition = UnicornStreamingAcquisition()
+        
+        worker = Worker(self.streamingacquisition.startAcquisition)
+        worker.signals.result.connect(self.saveResult)
+        worker.signals.error.connect(self.cancelBCI)
+        worker.signals.finished.connect(self.stopBCI)
+        #worker.signals.progress.connect(self.progress_fn)
+        self.threadpool.start(worker)
         
         self.show()
             
@@ -214,7 +222,7 @@ class AcquisitionWidget(QWidget):
         self.cancelbutton.setEnabled(True)
         
       
-        worker = Worker(acquisitionmodule.acquiredata, int(self.spinboxacquistiontime.value()))
+        worker = Worker(self.streamingacquisition.getNseconds, self.spinboxacquistiontime.value())
         worker.signals.result.connect(self.saveResult)
         worker.signals.error.connect(self.cancelBCI)
         worker.signals.finished.connect(self.stopBCI)
@@ -238,7 +246,10 @@ class AcquisitionWidget(QWidget):
         
         dateTimeObj = datetime.now()
         timestampStr = dateTimeObj.strftime("%d-%b-%Y.%Hh%Mm%Ss%f")
-        resultFileName = "data/data_yes%0.1fHz_no%0.1fHz_%s.csv" % (self.spinboxyes.value(), self.spinboxno.value(), timestampStr)
+        focus = "yes"
+        if self.noradiobuttion.isChecked():
+            focus = "no"
+        resultFileName = "data/data_focus-%s_yes%0.1fHz_no%0.1fHz_%0.1fseconds_%s.csv" % (focus, self.spinboxyes.value(), self.spinboxno.value(), self.spinboxacquistiontime.value(), timestampStr)
         np.savetxt(resultFileName, result, delimiter=",")
         
         """
