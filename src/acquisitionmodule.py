@@ -22,8 +22,12 @@ def acquiredata(AcquisitionDurationInSeconds=10):
 
     # Get available device serials.
     deviceList = UnicornPy.GetAvailableDevices(True)
-    time.sleep(10)
+    """
+    for i in range(3):
+        print("Hello %d" % i)
+        time.sleep(1.0)
     return []
+    """
 
     """
     # Print available device serials.
@@ -53,12 +57,12 @@ def acquiredata(AcquisitionDurationInSeconds=10):
     configuration = device.GetConfiguration()
 
     # Print acquisition configuration
-    print("Acquisition Configuration:");
-    print("Sampling Rate: %i Hz" %UnicornPy.SamplingRate);
-    print("Frame Length: %i" %FrameLength);
-    print("Number Of Acquired Channels: %i" %numberOfAcquiredChannels);
-    print("Data Acquisition Length: %i s" %AcquisitionDurationInSeconds);
-    print();
+    print("Acquisition Configuration:")
+    print("Sampling Rate: %i Hz" %UnicornPy.SamplingRate)
+    print("Frame Length: %i" %FrameLength)
+    print("Number Of Acquired Channels: %i" %numberOfAcquiredChannels)
+    print("Data Acquisition Length: %i s" %AcquisitionDurationInSeconds)
+    print()
 
     # %% Get data
 
@@ -71,10 +75,10 @@ def acquiredata(AcquisitionDurationInSeconds=10):
     print("Data acquisition started.")
 
     # Calculate number of get data calls.
-    numberOfGetDataCalls = int(AcquisitionDurationInSeconds * UnicornPy.SamplingRate / FrameLength);
+    numberOfGetDataCalls = int(AcquisitionDurationInSeconds * UnicornPy.SamplingRate / FrameLength)
 
     # Limit console update rate to max. 25Hz or slower to prevent acquisition timing issues.                   
-    consoleUpdateRate = int((UnicornPy.SamplingRate / FrameLength) / 25.0);
+    consoleUpdateRate = int((UnicornPy.SamplingRate / FrameLength) / 25.0)
     if consoleUpdateRate == 0:
         consoleUpdateRate = 1
 
@@ -95,9 +99,9 @@ def acquiredata(AcquisitionDurationInSeconds=10):
 
     # Stop data acquisition.
     bci_data = bci_data[1:,:]
-    device.StopAcquisition();
+    device.StopAcquisition()
     print()
-    print("Data acquisition stopped.");
+    print("Data acquisition stopped.")
 
     # release receive allocated memory of receive buffer
     del receiveBuffer
