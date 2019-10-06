@@ -75,7 +75,7 @@ class AnswerPanelWidget(QWidget):
         
         self.answers = ["Yes", "No"]
         self.answerstates = [0 for i in range(len(self.answers))]
-        self.frequencies = [3.0,4.5]   
+        self.frequencies = [5.0,9.0]   
         self.divisions = 2
         self.fractionofdivision = 1 # show face for 1/4 of time
         self.periodsinmilli = [1000.0/freq/self.divisions for freq in self.frequencies]
@@ -87,10 +87,10 @@ class AnswerPanelWidget(QWidget):
         
         self.blockrects = []
         self.panelpadding = 2
-        self.blockwidth = 120
+        self.blockwidth = 150
         self.blockheight = self.blockwidth
         self.blockrounding = 7
-        self.buttonspacing = 500
+        self.buttonspacing = 880
         self.yoffset = 0
         for (index,ans) in enumerate(self.answers):
             self.blockrects.append(QRectF(self.panelpadding + index*(self.blockwidth+self.buttonspacing),  self.panelpadding + self.yoffset,  self.blockwidth,  self.blockheight))      
@@ -271,7 +271,7 @@ class QuestionAnswerWidget(QWidget):
         self.questiontimer = QTimer()        
         self.questiontimer.timeout.connect(self.updatequestion)
         
-        self.bcianimationtimeoutmillis = 6000.0 if RELEASE_VERSION else 1000.0
+        self.bcianimationtimeoutmillis = 6000.0 if RELEASE_VERSION else 6000.0
         self.choicetimeoutmillis = 4000.0 if RELEASE_VERSION else 2000.0
         
         labelfont = QFont()
