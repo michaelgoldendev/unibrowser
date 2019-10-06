@@ -22,6 +22,8 @@ RELEASE_VERSION = True
 from streamingacquisition import UnicornStreamingAcquisition
 startdatetime = datetime.now()
 
+from AcquistionFunctions import process_EEG
+
 
 class WorkerSignals(QObject):
     '''
@@ -134,7 +136,7 @@ class AcquisitionWidget(QWidget):
         self.spinboxyes.setMinimum(0.1)
         self.spinboxyes.setMaximum(100.0)
         self.spinboxyes.setSingleStep(0.1)
-        self.spinboxyes.setValue(9.0)
+        self.spinboxyes.setValue(3.0)
         self.spinboxyes.setDecimals(1)
         self.yespinnerlayout.addWidget(self.spinboxyes) 
         self.yespinnerlayout.addStretch(1)
@@ -152,7 +154,7 @@ class AcquisitionWidget(QWidget):
         self.spinboxno.setMaximum(100.0)
         self.spinboxno.setSingleStep(0.1)
         self.spinboxno.setDecimals(1)
-        self.spinboxno.setValue(14.0)
+        self.spinboxno.setValue(5.0)
         self.nopinnerlayout.addWidget(self.spinboxno)    
         self.nopinnerlayout.addStretch(1)
         self.vboxlayout.addWidget(self.nospinnerframe)
@@ -226,7 +228,6 @@ class AcquisitionWidget(QWidget):
         worker.signals.result.connect(self.saveResult)
         worker.signals.error.connect(self.cancelBCI)
         worker.signals.finished.connect(self.stopBCI)
-        #worker.signals.progress.connect(self.progress_fn)
         self.threadpool.start(worker)
         """
         
@@ -241,6 +242,7 @@ class AcquisitionWidget(QWidget):
         QTimer.singleShot(self.bcianimationtimeoutmillis, self.stopBCI)
         """
     def saveResult(self, result):
+        logratio = process_EEG(result, self.spinboxyes.value(), self.spinboxno.value())
         timestampStr = startdatetime.strftime("%d-%b-%Y_%Hh%Mm%Ss%f")
         datafolder = 'data%s/' % timestampStr
         if not os.path.exists(datafolder):
@@ -253,6 +255,10 @@ class AcquisitionWidget(QWidget):
             focus = "no"
         resultFileName = "%s/data_focus-%s_yes%0.1fHz_no%0.1fHz_%0.1fseconds_%s.csv" % (datafolder,focus, self.spinboxyes.value(), self.spinboxno.value(), self.spinboxacquistiontime.value(), timestampStr)
         np.savetxt(resultFileName, result, delimiter=",")
+        
+        fout = open("results.csv", "a")
+        fout.write("%s,%0.1f,%0.1f,%0.1f,%s,%0.3f\n" % (focus, self.spinboxyes.value(), self.spinboxno.value(), self.spinboxacquistiontime.value(), timestampStr, logratio))
+        fout.close()
         
         """
         fout = open(, "w")
