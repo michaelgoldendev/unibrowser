@@ -165,7 +165,7 @@ class AcquisitionWidget(QWidget):
         self.spinboxacquistiontime.setSingleStep(0.5)
         self.spinboxacquistiontime.setValue(600.0)
         self.spinboxacquistiontime.setMinimum(0.5)
-        self.spinboxacquistiontime.setMaximum(600.0)
+        self.spinboxacquistiontime.setMaximum(60.0)
         self.spinboxacquistiontime.setDecimals(1)
         self.acquistiontimepinnerlayout.addWidget(self.spinboxacquistiontime)    
         self.acquistiontimepinnerlayout.addStretch(1)
