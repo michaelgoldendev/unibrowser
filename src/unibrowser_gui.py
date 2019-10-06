@@ -1,100 +1,94 @@
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-from PyQt5.QtChart import *
+# from PyQt5.QtChart import *
 
 import numpy as np
 import sys
 import akinator_model
 import akinator_geography_questionsanswers
-import worldmapwindow
 import map_info
-from answerpanel import AnswerPanelWidget
-from answerpanel import Answer
+
+from worldmapwidget import WorldMapCanvas
+from questionanswerwidget import QuestionAnswerWidget
+from questionanswerwidget import Answer
+import countrylistwidget
+
+from akinator_model import QuestionType
+
+import os
+script_path = os.path.dirname(os.path.abspath( __file__ ))
 
 class MainWindow(QWidget):
     
     def __init__(self):
         super().__init__()
-        self.setFixedWidth(800)
+        #self.setFixedWidth(800)
+        
+        self.qkey = -1
+        self.questiontext = ""
         
         self.mapinfo = map_info.MapInfo()
         
         self.model = akinator_model.Akinator()
         akinator_geography_questionsanswers.setup_geography_akinator(self.model, self.mapinfo)
         
-        self.label = QLabel("")
-        
         #self.actionExit.triggered.connect(self.close)
-        self.worldmapwindow = worldmapwindow.WorldMapWindow(self.mapinfo)
-        self.initUI()        
-        self.updateWorldMap(self.model)
         
-        self.nextquestion()
+        
+        self.setWindowTitle("Unibrowser")        
+        self.setStyleSheet("background-color: rgb(255, 255, 255);")
+        
+        self.canvas =  WorldMapCanvas(self.mapinfo, parent=self, width=10.5, height=9.5)
+        self.listwidget = countrylistwidget.CountryListWidget()
+        self.listwidget.setFixedWidth(450)
+        
+        self.questionanswerpanel = QuestionAnswerWidget(self)
+        #self.questionanswerpanel.setFixedHeight(200)
+        self.questionanswerpanel.answerpanel.answerclicked.connect(self.answerClickedEvent)
+        
+        
+        
+        mainlayout = QHBoxLayout()
+        
+        leftframe =  QFrame()
+        leftframelayout = QVBoxLayout()
+        leftframelayout.setAlignment(Qt.AlignCenter)
+        leftframelayout.addWidget(self.questionanswerpanel)        
+        leftframelayout.addWidget(self.canvas)        
+        leftframe.setLayout(leftframelayout)
+        
+        rightframe = QFrame()
+        rightframelayout = QVBoxLayout()
+        rightframelayout.setAlignment(Qt.AlignCenter)
+        labelfont = QFont()
+        labelfont.setPointSize(18)
+        #labelfont.setBold(True)
+        #labelfont.setWeight(70)
+        rankinglabel = QLabel("Country ranking")
+        rankinglabel.setFont(labelfont)
+        rankinglabel.setAlignment(Qt.AlignCenter)
+        rightframelayout.addWidget(rankinglabel)
+        rightframelayout.addWidget(self.listwidget)
+        rightframe.setLayout(rightframelayout)
+        
+        mainlayout.addWidget(leftframe, 1)
+        mainlayout.addWidget(rightframe)     
+        
+      
+        
+        
+        self.updateWorldMap(self.model)
+        self.setLayout(mainlayout)
+        
+        
+        self.show()
+        
+        
     
     def close(self):
         exit()
-        
-        
-    def initUI(self):     
-        self.setWindowTitle("Unibrowser")
-        
-        layout = QVBoxLayout()
-        
-        questionfont = QFont()
-        questionfont.setPointSize(15)
-        questionfont.setBold(True)
-        questionfont.setWeight(75)
-        
-        self.label.setFont(questionfont)
-        self.label.setAlignment(Qt.AlignCenter)
-        layout.addWidget(self.label)
-        
-        answerbuttonfont = QFont()
-        answerbuttonfont.setPointSize(13)
-        answerbuttonfont.setBold(True)
-        #answerbuttonfont.setWeight(75)
-        
-        """
-        self.yesbutton = QPushButton('Yes', self)
-        self.yesbutton.setFont(answerbuttonfont)
-        self.yesbutton.clicked.connect(lambda: self.handleButton(0))
-        self.yesbutton.setToolTip('Yes')
-        layout.addWidget(self.yesbutton)
-        
-        self.probablyyesbutton = QPushButton('Probably yes', self)
-        self.probablyyesbutton.setFont(answerbuttonfont)
-        self.probablyyesbutton.clicked.connect(lambda: self.handleButton(1))
-        self.probablyyesbutton.setToolTip('Probably yes')
-        layout.addWidget(self.probablyyesbutton)
-       
-        self.maybebutton = QPushButton('Don\'t know', self)
-        self.maybebutton.setFont(answerbuttonfont)
-        self.maybebutton.clicked.connect(lambda: self.handleButton(2))
-        self.maybebutton.setToolTip('Don\'t know')
-        layout.addWidget(self.maybebutton)
-        
-        self.probablynobutton = QPushButton('Probably no', self)
-        self.probablynobutton.setFont(answerbuttonfont)
-        self.probablynobutton.clicked.connect(lambda: self.handleButton(3))
-        self.probablynobutton.setToolTip('Probably no')
-        layout.addWidget(self.probablynobutton)       
-        
-        self.nobutton = QPushButton('No', self)
-        self.nobutton.setFont(answerbuttonfont)
-        self.nobutton.clicked.connect(lambda: self.handleButton(4))
-        self.nobutton.setToolTip('No')
-        layout.addWidget(self.nobutton)
-        """
-        layout.addStretch(1)
-        self.answerpanel = AnswerPanelWidget()
-        self.answerpanel.setFixedHeight(80)
-        self.answerpanel.answerclicked.connect(self.answerClickedEvent)
-        layout.addWidget(self.answerpanel)
-        
-        
-        self.setLayout(layout)
-        self.show()
+   
         
     def handleButton(self, answer):
         #self.model.bayesianupdate_discreteanswer(self.qkey, answer)
@@ -124,26 +118,37 @@ class MainWindow(QWidget):
             self.model.bayesianupdate_probanswer(self.qkey, [0.20, 0.80])
         elif answer == Answer.NO:
             self.model.bayesianupdate_probanswer(self.qkey, [0.02, 0.98])
-        self.nextquestion()
+        #self.nextquestion()
+
+        questiontype = self.model.questiontypes[self.qkey]
+        if questiontype == QuestionType.TERMINAL:
+            if answer == Answer.YES:
+                self.canvas.showUnicorn()
+                self.questionanswerpanel.label.setText("The Unibrow sees all.")
+        else:
+            self.questionanswerpanel.shownextquestion()
         QApplication.restoreOverrideCursor()
        
             
     def updateWorldMap(self, akinator):
         for (state,prob) in zip(akinator.statelist, akinator.stateprobs):
-            self.worldmapwindow.canvas.setlocationcolourbyvalue(state,prob,drawimmediately=False)
-        self.worldmapwindow.canvas.draw()
-        self.worldmapwindow.listwidget.updatelist(akinator.stateprobs, self.mapinfo)
+            self.canvas.setlocationcolourbyvalue(state,prob,drawimmediately=False)
+        self.canvas.draw()
+        self.listwidget.updatelist(akinator.stateprobs, self.mapinfo, top=1000)
     
     def nextquestion(self):
         self.qkey = self.model.getnextquestion()
         if self.qkey >= 0:
             questiontype = self.model.questiontypes[self.qkey]
+            """
             if questiontype == akinator_model.QuestionType.TERMINAL:
-                self.answerpanel.softoptionsenabled = False
-                self.answerpanel.repaint()
+                self.questionanswerpanel.softoptionsenabled = False
+                self.questionanswerpanel.repaint()
             else:
-                self.answerpanel.softoptionsenabled = True
-                self.answerpanel.repaint()
+                self.questionanswerpanel.softoptionsenabled = True
+                self.questionanswerpanel.repaint()
+            """
+            
             """
             if questiontype == akinator_model.QuestionType.TERMINAL:
                 self.probablyyesbutton.setEnabled(False)
@@ -156,13 +161,21 @@ class MainWindow(QWidget):
             """
             
             self.model.usedquestions.append(self.qkey)
-            self.label.setText("%d. %s" % (len(self.model.usedquestions), self.model.questions[self.qkey]))
+            self.questiontext = "%d. %s" % (len(self.model.usedquestions), self.model.questions[self.qkey])
+            #self.questionanswerpanel.questiontext = "%d. %s" % (len(self.model.usedquestions), self.model.questions[self.qkey])
+            #self.questionanswerpanel.shownextquestion()
             self.updateWorldMap(self.model)
         else:
             self.model.usedquestions = []
-            
+        self.questiontext = "%d. %s" % (len(self.model.usedquestions), self.model.questions[self.qkey])
+        #self.questionanswerpanel.questiontext = "%d. %s" % (len(self.model.usedquestions), self.model.questions[self.qkey])
+        #self.questionanswerpanel.shownextquestion()
+        self.updateWorldMap(self.model)
+        
+        return self.qkey
         
 if __name__ == '__main__':    
     app = QApplication(sys.argv)
-    ex = MainWindow()    
+    ex = MainWindow() 
+    ex.showMaximized()
     sys.exit(app.exec_())

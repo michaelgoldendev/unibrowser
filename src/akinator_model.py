@@ -4,6 +4,7 @@ A state guesser based on the popular akinator game.
 
 import numpy as np
 import akinator_questionpicker
+import random
 
 from enum import IntEnum
 class DefaultResponse(IntEnum):
@@ -126,13 +127,16 @@ class Akinator:
         """
         
         self.statelogprobs, self.stateprobs = self.calculate_state_probs(self.statelogprobs, self.stateprobs, qkey, avec)
+        """
         sortedstates = [(p, state) for (p, state)  in zip(self.stateprobs,self.statelist)]
         sortedstates.sort()
+        
         for (p, state) in sortedstates:
             print(" %s: %0.6f" % (state,p))
         #print(self.statelogprobs)
         #print(np.sum(self.stateprobs))
         print("------------------------------")
+        """
         
     def calculate_state_probs(self, statelogprobs, stateprobs, qkey, avec):
         """Helper method that performs the Bayesian update with probabilities calculated in log-space to avoid numerical precision errors.
