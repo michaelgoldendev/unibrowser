@@ -11,11 +11,11 @@ script_path = os.path.dirname(os.path.abspath( __file__ ))
 questionsfile = os.path.abspath(os.path.join(script_path, '../questions.json'))
 
 def add_demographic_info_from_shape_data(akinator, mapinfo):    
-    incomeyes = [0.90, 0.1]
-    incomeno = [0.1, 0.90]
+    incomeyes = [0.75, 0.1]
+    incomeno = [0.1, 0.75]
     
-    defaultyes = [0.75, 0.25]
-    defaultno = [0.25, 0.75]
+    defaultyes = [0.85, 0.15]
+    defaultno = [0.15, 0.85]
     
     qkey = akinator.addquestion('Is this country considered a high income country?')
     for countryname in mapinfo.locationlist:
@@ -137,6 +137,23 @@ def add_additional_questions(akinator, mapinfo):
             akinator.addanswer(qkey, countryname, [0.8, 0.2])
         else:
             akinator.addanswer(qkey, countryname, [0.2, 0.8])
+            
+    
+    """
+    Countries that have participated in football world cup
+    """
+    print("Football")
+    wonthefootballworldcup = ["Brazil", "Italy", "Germany", "Uruguay", "Argentina", "France", "England", "Spain"]
+    if country in wonthefootballworldcup:
+        if country not in mapinfo.infobycountryname:
+            print("Country cannot be found: ", country)
+            
+    qkey = akinator.addquestion('Has your country ever won a football world cup?')
+    for countryname in mapinfo.infobycountryname:
+        if countryname in wonthefootballworldcup:
+            akinator.addanswer(qkey, countryname, [0.85, 0.15])
+        else:
+            akinator.addanswer(qkey, countryname, [0.15, 0.85])
             
     
 

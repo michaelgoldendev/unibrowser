@@ -253,7 +253,7 @@ class QuestionAnswerWidget(QWidget):
         super().__init__()
         self.parent = parent
 
-        self.inputmethod =  InputMethod.SSVEP # InputMethod.MOUSE, InputMethod.SSVEP
+        self.inputmethod =  InputMethod.MOUSE # InputMethod.MOUSE, InputMethod.SSVEP
         
         self.setWindowTitle('Unibrowser')
         self.setMouseTracking(True)
