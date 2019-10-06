@@ -22,7 +22,7 @@ class UnicornStreamingAcquisition:
     
     def __init__(self):
         # Specifications for the data acquisition.
-        self.TestsignaleEnabled = True
+        self.TestsignaleEnabled = False
         self.FrameLength = 1
         self.captureframes = 0
         self.big_data = np.zeros((1,17))
