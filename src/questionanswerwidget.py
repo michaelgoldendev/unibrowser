@@ -105,6 +105,10 @@ class AnswerPanelWidget(QWidget):
         self.setFixedHeight(self.panelheight)
         self.mouseinteractionenabled = True
         
+    def setFrequencies(self, frequencies):
+        self.frequencies = frequencies 
+        self.periodsinmilli = [1000.0/freq/self.divisions for freq in self.frequencies]
+        
     def flash(self, index):
         if self.counts[index] % self.divisions < self.fractionofdivision:
             self.answerstates[index] = 1 # show face
