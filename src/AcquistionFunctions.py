@@ -6,8 +6,8 @@ from sklearn.cross_decomposition import CCA
 from sklearn import metrics
 
 freq = 250
-lowcut = 4
-highcut = 30
+lowcut = 1
+highcut = 20
 coi = np.arange(8)
 lcoi = len(coi)
 
