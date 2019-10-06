@@ -105,7 +105,7 @@ class CountryListWidget (QWidget):
             customwidget.iconlabel.setStyleSheet('background: transparent;')
             
             customwidget.countrylabel.setText(country)
-            customwidget.countrylabel.setFixedWidth(200)
+            customwidget.countrylabel.setFixedWidth(250)
             customwidget.countrylabel.setStyleSheet('background: transparent;')
             
             customwidget.colourlabel.setStyleSheet("background-color:" + color +";")

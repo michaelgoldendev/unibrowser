@@ -41,7 +41,7 @@ class MainWindow(QWidget):
         
         self.canvas =  WorldMapCanvas(self.mapinfo, parent=self, width=10.5, height=9.5)
         self.listwidget = countrylistwidget.CountryListWidget()
-        self.listwidget.setFixedWidth(450)
+        self.listwidget.setFixedWidth(500)
         
         self.questionanswerpanel = QuestionAnswerWidget(self)
         #self.questionanswerpanel.setFixedHeight(200)
