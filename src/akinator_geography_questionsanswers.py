@@ -10,10 +10,7 @@ import os
 script_path = os.path.dirname(os.path.abspath( __file__ ))
 questionsfile = os.path.abspath(os.path.join(script_path, '../questions.json'))
 
-def add_demographic_info_from_shape_data(akinator, mapinfo):    
-    incomeyes = [0.75, 0.1]
-    incomeno = [0.1, 0.75]
-    
+def add_demographic_info_from_shape_data(akinator, mapinfo):
     defaultyes = [0.85, 0.15]
     defaultno = [0.15, 0.85]
     
@@ -21,17 +18,19 @@ def add_demographic_info_from_shape_data(akinator, mapinfo):
     for countryname in mapinfo.locationlist:
         info = mapinfo.infobycountryname[countryname]
         if info['INCOME_GRP'].startswith("1.") or info['INCOME_GRP'].startswith("2."):
-            akinator.addanswer(qkey, countryname, incomeyes)
+            akinator.addanswer(qkey, countryname, [0.85, 0.15])
         else:
-            akinator.addanswer(qkey, countryname, incomeno)
+            akinator.addanswer(qkey, countryname, [0.15, 0.85])
     
+ 
     qkey = akinator.addquestion('Is this country considered a low income country?')
     for countryname in mapinfo.locationlist:
         info = mapinfo.infobycountryname[countryname]
         if info['INCOME_GRP'].startswith("4.") or info['INCOME_GRP'].startswith("5."):
-            akinator.addanswer(qkey, countryname, incomeyes)
+            akinator.addanswer(qkey, countryname, [0.75, 0.25])
         else:
-            akinator.addanswer(qkey, countryname, incomeno)
+            akinator.addanswer(qkey, countryname, [0.25, 0.75])
+    
     
     """
     continents = ['Asia', 'South America', 'Africa', 'Europe', 'North America', 'Oceania', 'Antarctica']
@@ -142,7 +141,6 @@ def add_additional_questions(akinator, mapinfo):
     """
     Countries that have participated in football world cup
     """
-    print("Football")
     wonthefootballworldcup = ["Brazil", "Italy", "Germany", "Uruguay", "Argentina", "France", "England", "Spain"]
     if country in wonthefootballworldcup:
         if country not in mapinfo.infobycountryname:
@@ -155,6 +153,41 @@ def add_additional_questions(akinator, mapinfo):
         else:
             akinator.addanswer(qkey, countryname, [0.15, 0.85])
             
+    """
+    Countries that don't use the metric system
+    """
+    print("Metric system")
+    dontusethemetricystem = ["United States", "Liberia", "Burma"]
+    if country in dontusethemetricystem:
+        if country not in mapinfo.infobycountryname:
+            print("Country cannot be found: ", country)
+            
+    qkey = akinator.addquestion('Is your country one of the three that do not use the metric system!?')
+    for countryname in mapinfo.infobycountryname:
+        if countryname in dontusethemetricystem:
+            akinator.addanswer(qkey, countryname, [0.95, 0.05])
+        else:
+            akinator.addanswer(qkey, countryname, [0.05, 0.95])
+            
+    
+    """
+    Hosted the olympic games
+    """
+    print("Olympic games")
+    hostedolympicgames = ["United States", "France", "Germany", "Greece", "Japan", "Italy", "United Kingdom", "Canada", "Australia", "Russia", "South Korea", "Switzerland", "Norway", "Austria", "China", "Brazil", "Sweden", "Belgium", "Netherlands", "Finland", "Mexico", "Spain", "Yugoslavia"]
+    if country in hostedolympicgames:
+        if country not in mapinfo.infobycountryname:
+            print("Country cannot be found: ", country)
+            
+    qkey = akinator.addquestion('Has your country hosted the summer of winter Olympic games?')
+    for countryname in mapinfo.infobycountryname:
+        if countryname in hostedolympicgames:
+            akinator.addanswer(qkey, countryname, [0.90, 0.10])
+        else:
+            akinator.addanswer(qkey, countryname, [0.1, 0.90])
+            
+    
+
     
 
 def setup_geography_akinator(akinator, mapinfo):
