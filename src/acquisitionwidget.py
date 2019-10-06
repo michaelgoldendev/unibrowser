@@ -256,7 +256,7 @@ class AcquisitionWidget(QWidget):
         resultFileName = "%s/data_focus-%s_yes%0.1fHz_no%0.1fHz_%0.1fseconds_%s.csv" % (datafolder,focus, self.spinboxyes.value(), self.spinboxno.value(), self.spinboxacquistiontime.value(), timestampStr)
         np.savetxt(resultFileName, result, delimiter=",")
         
-        fout = open("data%s/results.csv", "a")
+        fout = open("%s/results.csv" % datafolder, "a")
         fout.write("%s,%0.1f,%0.1f,%0.1f,%s,%0.3f\n" % (focus, self.spinboxyes.value(), self.spinboxno.value(), self.spinboxacquistiontime.value(), timestampStr, logratio))
         fout.close()
         
