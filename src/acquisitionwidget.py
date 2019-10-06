@@ -15,12 +15,12 @@ import traceback, sys
 from questionanswerwidget import AnswerPanelWidget
 from questionanswerwidget import InputMethod
 
-import acquisitionmodule
 from datetime import datetime
 
 RELEASE_VERSION = True
 
 from streamingacquisition import UnicornStreamingAcquisition
+startdatetime = datetime.now()
 
 
 class WorkerSignals(QObject):
@@ -241,8 +241,9 @@ class AcquisitionWidget(QWidget):
         QTimer.singleShot(self.bcianimationtimeoutmillis, self.stopBCI)
         """
     def saveResult(self, result):
-        if not os.path.exists('data/'):
-            os.makedirs('data/')
+        timestampStr = startdatetime.strftime("%d-%b-%Y_%Hh%Mm%Ss%f")
+        if not os.path.exists('data%s/' % timestampStr):
+            os.makedirs('data%s/' % timestampStr)
         
         dateTimeObj = datetime.now()
         timestampStr = dateTimeObj.strftime("%d-%b-%Y.%Hh%Mm%Ss%f")
