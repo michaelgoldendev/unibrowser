@@ -20,6 +20,8 @@ from datetime import datetime
 
 RELEASE_VERSION = True
 
+#from UnicornStreamingAcquisition
+
 
 class WorkerSignals(QObject):
     '''
@@ -163,9 +165,9 @@ class AcquisitionWidget(QWidget):
         self.acquistiontimepinnerlayout.addWidget(self.labelacquistiontime)        
         self.spinboxacquistiontime = QDoubleSpinBox()
         self.spinboxacquistiontime.setSingleStep(0.5)
-        self.spinboxacquistiontime.setValue(600.0)
+        self.spinboxacquistiontime.setValue(60.0)
         self.spinboxacquistiontime.setMinimum(0.5)
-        self.spinboxacquistiontime.setMaximum(60.0)
+        self.spinboxacquistiontime.setMaximum(100000000.0)
         self.spinboxacquistiontime.setDecimals(1)
         self.acquistiontimepinnerlayout.addWidget(self.spinboxacquistiontime)    
         self.acquistiontimepinnerlayout.addStretch(1)
