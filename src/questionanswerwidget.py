@@ -76,7 +76,7 @@ class AnswerPanelWidget(QWidget):
         self.answers = ["Yes", "No"]
         self.answerstates = [0 for i in range(len(self.answers))]
         self.frequencies = [3.0,4.5]   
-        self.divisions = 4
+        self.divisions = 2
         self.fractionofdivision = 1 # show face for 1/4 of time
         self.periodsinmilli = [1000.0/freq/self.divisions for freq in self.frequencies]
         self.counts = [0 for i in range(len(self.answers))]
