@@ -252,6 +252,7 @@ class AcquisitionWidget(QWidget):
         self.spinboxacquistiontime.setEnabled(True)
         self.startbutton.setEnabled(True)
         self.cancelbutton.setEnabled(False)
+        exit()
         
     
     def stopBCI(self):        
