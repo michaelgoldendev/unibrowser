@@ -17,7 +17,7 @@ from scipy.signal import freqz
 # Specifications for the data acquisition.
 TestsignaleEnabled = False;
 FrameLength = 1;
-AcquisitionDurationInSeconds = 10;
+AcquisitionDurationInSeconds = 120;
 
 # Get available device serials.
 deviceList = UnicornPy.GetAvailableDevices(True)
@@ -122,7 +122,7 @@ for i in range(lcoi):
     filteredEEG[:,i] = sosfilt(sos, EEG[:,i])
 
 # %% plot power spec
-filteredEEG = filteredEEG[1000:,:]    
+filteredEEG = filteredEEG[30*250-1:,:]    
 for i in range(lcoi):
     freqs, psd = welch(filteredEEG[:,i], freq, nperseg=freq*4)
     plt.plot(freqs[:-1], psd[:-1], lw=2,label=str(coi[i]))
