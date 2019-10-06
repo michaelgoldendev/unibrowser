@@ -1,13 +1,13 @@
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-from PyQt5.QtChart import *
 
 import numpy as np
 import sys
 import akinator_model
 import akinator_geography_questionsanswers
 import map_info
+from akinator_model import QuestionType
 
 from worldmapwidget import WorldMapCanvas
 from questionanswerwidget import QuestionAnswerWidget
@@ -114,7 +114,11 @@ class MainWindow(QWidget):
         elif answer == Answer.NO:
             self.model.bayesianupdate_probanswer(self.qkey, [0.02, 0.98])
         #self.nextquestion()
-        self.questionanswerpanel.shownextquestion()
+        questiontype = self.model.questiontypes[self.qkey]
+        if questiontype == QuestionType.TERMINAL:
+            print("Terminating with %s" % answer)
+        else:
+            self.questionanswerpanel.shownextquestion()
         QApplication.restoreOverrideCursor()
        
             
@@ -148,13 +152,16 @@ class MainWindow(QWidget):
                 self.probablynobutton.setEnabled(True)
             """
             
-            self.model.usedquestions.append(self.qkey)
-            self.questiontext = "%d. %s" % (len(self.model.usedquestions), self.model.questions[self.qkey])
-            #self.questionanswerpanel.questiontext = "%d. %s" % (len(self.model.usedquestions), self.model.questions[self.qkey])
-            #self.questionanswerpanel.shownextquestion()
-            self.updateWorldMap(self.model)
+            self.model.usedquestions.append(self.qkey)          
         else:
             self.model.usedquestions = []
+        
+        self.questiontext = "%d. %s" % (len(self.model.usedquestions), self.model.questions[self.qkey])
+        #self.questionanswerpanel.questiontext = "%d. %s" % (len(self.model.usedquestions), self.model.questions[self.qkey])
+        #self.questionanswerpanel.shownextquestion()
+        self.updateWorldMap(self.model)
+        
+        return self.qkey
             
         
 if __name__ == '__main__':    
