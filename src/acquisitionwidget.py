@@ -21,9 +21,10 @@ class AcquisitionWidget(QWidget):
         super().__init__()
 
         self.inputmethod =  InputMethod.SSVEP # InputMethod.MOUSE, InputMethod.SSVEP
+        self.answerpanel = AnswerPanelWidget(self.inputmethod)
         
         self.setWindowTitle('Unibrowser')
-        self.setMouseTracking(True)
+        self.setMouseTracking(False)
         
         self.vboxlayout  = QVBoxLayout()        
         self.vboxlayout.setAlignment(Qt.AlignCenter)
@@ -89,11 +90,28 @@ class AcquisitionWidget(QWidget):
         self.acquistiontimepinnerlayout.addStretch(1)
         self.vboxlayout.addWidget(self.acquistiontimespinnerframe)
         
+        self.focuslabel = QLabel("I am focusing on:")
+        self.vboxlayout.addWidget(self.focuslabel)
+        
+        self.yesradiobuttion = QRadioButton("Yes")
+        self.yesradiobuttion.setChecked(True)
+        #self.yesradiobuttion.toggled.connect(lambda:self.btnstate(self.b1))
+        self.vboxlayout.addWidget(self.yesradiobuttion)
+        
+        self.noradiobuttion = QRadioButton("No")
+        self.noradiobuttion.setChecked(False)
+        #self.yesradiobuttion.toggled.connect(lambda:self.btnstate(self.b1))
+        self.vboxlayout.addWidget(self.noradiobuttion)
+          
         self.startbutton = QPushButton('Start acquisition')
         self.startbutton.clicked.connect(self.startBCI)
         self.vboxlayout.addWidget(self.startbutton)
         
-        self.answerpanel = AnswerPanelWidget(self.inputmethod)
+        self.cancelbutton = QPushButton('Cancel acquisition')
+        self.cancelbutton.clicked.connect(self.cancelBCI)
+        self.cancelbutton.setEnabled(False)
+        self.vboxlayout.addWidget(self.cancelbutton)
+        
         self.vboxlayout.addWidget(self.answerpanel)    
         
         self.setLayout(self.vboxlayout)
@@ -108,7 +126,17 @@ class AcquisitionWidget(QWidget):
         self.spinboxacquistiontime.setEnabled(False)
         self.bcianimationtimeoutmillis = self.spinboxacquistiontime.value()*1000.0
         self.startbutton.setEnabled(False)
+        self.cancelbutton.setEnabled(True)
         QTimer.singleShot(self.bcianimationtimeoutmillis, self.stopBCI)
+        
+    def cancelBCI(self):
+        self.answerpanel.stopBCIanimation()
+        self.spinboxyes.setEnabled(True)
+        self.spinboxno.setEnabled(True)
+        self.spinboxacquistiontime.setEnabled(True)
+        self.startbutton.setEnabled(True)
+        self.cancelbutton.setEnabled(False)
+        
     
     def stopBCI(self):        
         self.answerpanel.stopBCIanimation()
@@ -116,6 +144,7 @@ class AcquisitionWidget(QWidget):
         self.spinboxno.setEnabled(True)
         self.spinboxacquistiontime.setEnabled(True)
         self.startbutton.setEnabled(True)
+        self.cancelbutton.setEnabled(False)
 
 if __name__ == '__main__':
     
