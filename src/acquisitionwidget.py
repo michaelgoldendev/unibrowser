@@ -13,7 +13,14 @@ import numpy as np
 
 from questionanswerwidget import AnswerPanelWidget
 from questionanswerwidget import InputMethod
+
+import acquisitionmodule
+
 RELEASE_VERSION = True
+       
+class AcquisitionThread(QRunnable):
+    def run(self):
+        acquisitionmodule.acquiredata()
 
 class AcquisitionWidget(QWidget):
     
@@ -51,7 +58,7 @@ class AcquisitionWidget(QWidget):
         self.spinboxyes.setMinimum(0.1)
         self.spinboxyes.setMaximum(100.0)
         self.spinboxyes.setSingleStep(0.1)
-        self.spinboxyes.setValue(3.0)
+        self.spinboxyes.setValue(5.0)
         self.spinboxyes.setDecimals(1)
         self.yespinnerlayout.addWidget(self.spinboxyes) 
         self.yespinnerlayout.addStretch(1)
@@ -69,7 +76,7 @@ class AcquisitionWidget(QWidget):
         self.spinboxno.setMaximum(100.0)
         self.spinboxno.setSingleStep(0.1)
         self.spinboxno.setDecimals(1)
-        self.spinboxno.setValue(5.0)
+        self.spinboxno.setValue(7.0)
         self.nopinnerlayout.addWidget(self.spinboxno)    
         self.nopinnerlayout.addStretch(1)
         self.vboxlayout.addWidget(self.nospinnerframe)
@@ -116,8 +123,10 @@ class AcquisitionWidget(QWidget):
         
         self.setLayout(self.vboxlayout)
         
+        self.threadpool = QThreadPool()
+        
         self.show()
-    
+            
     def startBCI(self):
         self.answerpanel.setFrequencies([self.spinboxyes.value(), self.spinboxno.value()])
         self.answerpanel.startBCIanimation()
@@ -127,7 +136,16 @@ class AcquisitionWidget(QWidget):
         self.bcianimationtimeoutmillis = self.spinboxacquistiontime.value()*1000.0
         self.startbutton.setEnabled(False)
         self.cancelbutton.setEnabled(True)
-        QTimer.singleShot(self.bcianimationtimeoutmillis, self.stopBCI)
+        
+        #self.threadpool.start(AcquisitionThread())
+        #thread = AcquisitionThread()
+        #thread.finished.connect(self.stopBCI)
+        #thread.start()
+        #
+        #runnable = AcquisitionThread()
+        #QThreadPool.globalInstance().start(runnable)
+        
+        #QTimer.singleShot(self.bcianimationtimeoutmillis, self.stopBCI)
         
     def cancelBCI(self):
         self.answerpanel.stopBCIanimation()
