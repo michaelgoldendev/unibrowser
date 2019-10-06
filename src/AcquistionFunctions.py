@@ -51,15 +51,14 @@ def process_EEG(E,yesfreq,nofreq):
     E -= np.mean(E,1).reshape(-1,1)
     fE = filter_and_cut_EGG_signal(E)
     cca = CCA(n_components=1)
-    scores = np.zeros((len(filteredEEG),2))
-    T = int(len(filteredEEG[0])/freq)
+    T = int(len(fE)/freq)
     Yyes = freq_basis(yesfreq, freq, T)
     Yno = freq_basis(nofreq, freq, T)
-    
     cca.fit(fE, Yyes)
     scoreyes = metrics.r2_score(Yyes,cca.predict(fE))#cca.score(X,Y)
     
     cca.fit(fE, Yno)
     scoreno = metrics.r2_score(Yno,cca.predict(fE))
+    logratio = np.log2(scoreyes/scoreno)
     
-    return (scoreyes,scoreno)
+    return logratio
