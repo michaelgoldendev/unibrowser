@@ -16,8 +16,8 @@ from sklearn import metrics
 import os
 
 freq = 250
-freqlist = [5,8]
-
+lowcut = 4
+highcut = 30
 coi = np.arange(8)
 lcoi = len(coi)
 
@@ -67,14 +67,11 @@ def butter_bandpass(lowcut, highcut, fs, order=5):
     sos = butter(order, [low, high], btype='band',output='sos')
     return sos
 
-lowcut = 4
-highcut = 30
-
 def filter_and_cut_EGG_signal(EEG):
     
     sos = butter_bandpass(lowcut, highcut, freq, order=15)
     a,b = iirnotch(50.0,30,freq)
-    filteredEEG = EEG - 0.
+    filteredEEG = np.zeros(EEG.shape)
     
     for i in range(lcoi):
         filteredEEG[:,i] = sosfilt(sos, EEG[:,i])
