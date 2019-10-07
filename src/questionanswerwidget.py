@@ -71,7 +71,7 @@ boldfont = QFont('Roboto', 48, weight=QFont.Bold)
 normalfont.setWeight(100)
 boldfont.setWeight(100)
 
-twotimers = False
+twotimers = True
     
 class AnswerPanelWidget(QWidget):
     

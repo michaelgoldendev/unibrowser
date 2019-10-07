@@ -71,10 +71,10 @@ class UnicornStreamingAcquisition:
                 data = np.reshape(data, (self.FrameLength, self.numberOfAcquiredChannels))
                 self.big_data = np.vstack([self.big_data,data])
                 self.captureframes -= 1
+            #if self.captureframes <= 0:
+            #    break
             i += 1
-            if i % 1000 == 0:
-                print(i,self.captureframes)
-            time.sleep(0.05)
+            time.sleep(0.002)
     
     def cancelAcquisition(self):
         self.captureframes = 0
