@@ -17,7 +17,7 @@ import os
 
 freqlist = [5,12]
 freq = 250
-lowcut = 4
+lowcut = 1
 highcut = 30
 coi = np.arange(8)
 lcoi = len(coi)
@@ -95,13 +95,16 @@ for fE in filteredEEG:
     plt.plot(fE)
     
 # %% plot power spec  
-
+EEGspectras = []
+freqs, psd = welch(filteredEEG[0][:,0], freq, nperseg=freq*4)
 for fE in filteredEEG:
-    fig, ax = plt.subplots(1, 1, figsize=(12, 4))   
+    fig, ax = plt.subplots(1, 1, figsize=(12, 4))  
+    EEGspectra = np.zeros((len(psd),filteredEEG[0].shape[1]))
     for i in range(lcoi):
-        freqs, psd = welch(fE[:,i], freq, nperseg=freq*4)
+        freqs, EEGspectra[:,i] = welch(fE[:,i], freq, nperseg=freq*4)
         plt.plot(freqs, psd, lw=2,label=str(coi[i]))
         plt.xlim(left=0, right=20)
+    EEGspectras.append(EEGspectra)
         
 # %% CCA approach
 
@@ -117,6 +120,31 @@ def freq_basis(f, sr, T):
             
     return Y.transpose()
 
+def freq_basis_emp(filteredEEG,f):
+    Y = np.zeros((EEGspectras[0].shape[0],EEGspectras[0].shape[1]))        
+    for i in range(len(EEGspectras)):
+        if targets[i]==f:
+            print(targets[i],i)
+            for j in range(EEGspectras[0].shape[1]):
+                Y[:,j] += EEGspectras[i][:,j]
+    return Y
+
+#cca = CCA(n_components=1)
+#scores = np.zeros((len(filteredEEG),2))
+#T = int(len(filteredEEG[0])/freq)
+#
+## X : array-like, shape = [n_samples, n_features]
+## Y : array-like, shape = [n_samples, n_targets]
+#
+#Yl = []
+#for f in range(len(freqlist)):
+#    Yl.append(freq_basis(freqlist[f], freq, T))
+#
+#for t in range(len(filteredEEG)):
+#    for f in range(len(freqlist)):
+#        cca.fit(filteredEEG[t], Yl[f])
+#        scores[t, f] = metrics.r2_score(Y,cca.predict(X))#cca.score(X,Y)
+    
 cca = CCA(n_components=1)
 scores = np.zeros((len(filteredEEG),2))
 T = int(len(filteredEEG[0])/freq)
@@ -126,12 +154,12 @@ T = int(len(filteredEEG[0])/freq)
 
 Yl = []
 for f in range(len(freqlist)):
-    Yl.append(freq_basis(freqlist[f], freq, T))
+    Yl.append(freq_basis_emp(EEGspectras,freqlist[f]))
 
 for t in range(len(filteredEEG)):
     for f in range(len(freqlist)):
-        cca.fit(filteredEEG[t], Yl[f])
-        scores[t, f] = metrics.r2_score(Y,cca.predict(X))#cca.score(X,Y)
+        cca.fit(EEGspectras[t], Yl[f])
+        scores[t, f] = metrics.r2_score(Yl[f],cca.predict(EEGspectras[t]))#cca.score(X,Y)
         
 fig, ax = plt.subplots()
 # plt.imshow(scores - np.mean(scores,1).reshape(1,-1).transpose())
