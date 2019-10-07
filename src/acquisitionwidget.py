@@ -136,7 +136,7 @@ class AcquisitionWidget(QWidget):
         self.spinboxyes.setMinimum(0.1)
         self.spinboxyes.setMaximum(100.0)
         self.spinboxyes.setSingleStep(0.1)
-        self.spinboxyes.setValue(3.0)
+        self.spinboxyes.setValue(9.0)
         self.spinboxyes.setDecimals(1)
         self.yespinnerlayout.addWidget(self.spinboxyes) 
         self.yespinnerlayout.addStretch(1)
@@ -154,7 +154,7 @@ class AcquisitionWidget(QWidget):
         self.spinboxno.setMaximum(100.0)
         self.spinboxno.setSingleStep(0.1)
         self.spinboxno.setDecimals(1)
-        self.spinboxno.setValue(5.0)
+        self.spinboxno.setValue(14.0)
         self.nopinnerlayout.addWidget(self.spinboxno)    
         self.nopinnerlayout.addStretch(1)
         self.vboxlayout.addWidget(self.nospinnerframe)
@@ -201,17 +201,19 @@ class AcquisitionWidget(QWidget):
         
         self.setLayout(self.vboxlayout)
         
+        
         self.threadpool = QThreadPool()
         self.streamingacquisition = UnicornStreamingAcquisition()
-        
-        worker = Worker(self.streamingacquisition.startAcquisition)
+        worker = Worker(self.initialise)
         worker.signals.result.connect(self.saveResult)
         worker.signals.error.connect(self.cancelBCI)
         worker.signals.finished.connect(self.stopBCI)
-        #worker.signals.progress.connect(self.progress_fn)
         self.threadpool.start(worker)
         
         self.show()
+    
+    def initialise(self):        
+        self.streamingacquisition.startAcquisition()
             
     def startBCI(self):
         self.answerpanel.setFrequencies([self.spinboxyes.value(), self.spinboxno.value()])
@@ -224,6 +226,7 @@ class AcquisitionWidget(QWidget):
         self.cancelbutton.setEnabled(True)
         
       
+        """
         worker = Worker(self.streamingacquisition.getNseconds, self.spinboxacquistiontime.value())
         worker.signals.result.connect(self.saveResult)
         worker.signals.error.connect(self.cancelBCI)
@@ -240,7 +243,7 @@ class AcquisitionWidget(QWidget):
         #QThreadPool.globalInstance().start(runnable)
         
         QTimer.singleShot(self.bcianimationtimeoutmillis, self.stopBCI)
-        """
+        
     def saveResult(self, result):
         logratio,scoreyes,scoreno = process_EEG(result, self.spinboxyes.value(), self.spinboxno.value())
         timestampStr = startdatetime.strftime("%d-%b-%Y_%Hh%Mm%Ss%f")
@@ -273,7 +276,8 @@ class AcquisitionWidget(QWidget):
         self.spinboxacquistiontime.setEnabled(True)
         self.startbutton.setEnabled(True)
         self.cancelbutton.setEnabled(False)
-        self.streamingacquisition.cancelAcquisition()
+        if  self.streamingacquisition != None:
+            self.streamingacquisition.cancelAcquisition()
         
     
     def stopBCI(self):        
