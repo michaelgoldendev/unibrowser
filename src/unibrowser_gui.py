@@ -123,7 +123,7 @@ class MainWindow(QWidget):
         questiontype = self.model.questiontypes[self.qkey]
         if questiontype == QuestionType.TERMINAL and answer == Answer.YES:
             self.canvas.showUnicorn()
-            self.questionanswerpanel.label.setText("The Unibrow sees all.")
+            self.questionanswerpanel.label.setText("The Unibrow sees all.\n")
         else:
             self.questionanswerpanel.shownextquestion()
         QApplication.restoreOverrideCursor()

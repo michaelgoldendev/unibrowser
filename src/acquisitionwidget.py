@@ -108,7 +108,7 @@ class AcquisitionWidget(QWidget):
         self.inputmethod =  InputMethod.SSVEP # InputMethod.MOUSE, InputMethod.SSVEP
         self.answerpanel = AnswerPanelWidget(self.inputmethod)
         
-        self.setWindowTitle('Unibrowser')
+        self.setWindowTitle('Unibrowser - Acquisition widget')
         self.setMouseTracking(False)
         
         self.vboxlayout  = QVBoxLayout()        
@@ -210,7 +210,7 @@ class AcquisitionWidget(QWidget):
         worker.signals.result.connect(self.saveResult)
         worker.signals.error.connect(self.cancelBCI)
         worker.signals.finished.connect(self.stopBCI)
-        self.threadpool.start(worker)
+        #self.threadpool.start(worker)
         
         self.show()
     
@@ -229,12 +229,13 @@ class AcquisitionWidget(QWidget):
         self.startbutton.setEnabled(False)
         self.cancelbutton.setEnabled(True)
         
-      
+        """
         worker = Worker(self.streamingacquisition.getNseconds, self.spinboxacquistiontime.value())
         worker.signals.result.connect(self.saveResult)
         worker.signals.error.connect(self.cancelBCI)
         worker.signals.finished.connect(self.stopBCI)
         self.threadpool.start(worker)
+        """
         
         
         #thread = AcquisitionThread()
@@ -244,7 +245,7 @@ class AcquisitionWidget(QWidget):
         #runnable = AcquisitionThread()
         #QThreadPool.globalInstance().start(runnable)
         
-        #QTimer.singleShot(self.bcianimationtimeoutmillis, self.stopBCI)
+        QTimer.singleShot(self.bcianimationtimeoutmillis, self.stopBCI)
         
     def saveResult(self, result):
         print("Saving result")

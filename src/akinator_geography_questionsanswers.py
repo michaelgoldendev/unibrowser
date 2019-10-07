@@ -120,8 +120,8 @@ def add_additional_questions(akinator, mapinfo):
     """
     Countries with nuclear weapons
     """
-    hasnuclearweapons = ["United States of America", "Russia", "United Kingdom", "France", "China", "India", "Pakistan", "North Korea", "Israel"]
-    if country in hasnuclearweapons:
+    hasnuclearweapons = ["United States of America", "Russia", "United Kingdom", "France", "People's Republic of China", "India", "Pakistan", "North Korea", "Israel"]
+    for country in hasnuclearweapons:
         if country not in mapinfo.infobycountryname:
             print("Country cannot be found: ", country)
     qkey = akinator.addquestion('Does your country currently have nuclear weapons?')
@@ -134,8 +134,9 @@ def add_additional_questions(akinator, mapinfo):
     """
     Countries that have participated in Eurovision
     """
-    participatedineurovsion = ["Albania","Armenia","Australia","Austria","Azerbaijan","Belarus","Belgium","Bosnia and Herzegovina","Bulgaria","Croatia","Cyprus","Czech Republic","Denmark","Estonia","Finland","France","Georgia","Germany","Greece","Hungary","Iceland","Ireland","Israel","Italy","Latvia","Lithuania","Malta","Moldova","Montenegro","Netherlands","North Macedonia","Norway","Poland","Portugal","Romania","Russia","San Marino","Serbia","Slovakia","Slovenia","Spain","Sweden","Switzerland","Turkey","Ukraine","United Kingdom","Andorra","Macedonia","Monaco","Serbia and Montenegro","Luxembourg","Yugoslavia","Morocco"]
-    if country in participatedineurovsion:
+    participatedineurovsion = ["Albania","Armenia","Australia","Austria","Azerbaijan","Belarus","Belgium","Bosnia and Herzegovina","Bulgaria","Croatia","Cyprus","Czech Republic","Denmark","Estonia","Finland","France","Georgia","Germany","Greece","Hungary","Iceland","Ireland","Israel","Italy","Latvia","Lithuania","Malta","Moldova","Montenegro","Netherlands","Republic of Macedonia","Norway","Poland","Portugal","Romania","Russia","San Marino","Serbia","Slovakia","Slovenia","Spain","Sweden","Switzerland","Turkey","Ukraine","United Kingdom","Andorra","Monaco","Montenegro","Luxembourg","Morocco"]
+    #,"Yugoslavia"
+    for country in participatedineurovsion:
         if country not in mapinfo.infobycountryname:
             print("Country cannot be found: ", country)
             
@@ -145,16 +146,15 @@ def add_additional_questions(akinator, mapinfo):
             akinator.addanswer(qkey, countryname, [0.80, 0.2])
         else:
             akinator.addanswer(qkey, countryname, [0.2, 0.80])
-            
     
     """
     Countries that have participated in football world cup
     """
-    wonthefootballworldcup = ["Brazil", "Italy", "Germany", "Uruguay", "Argentina", "France", "England", "Spain"]
-    if country in wonthefootballworldcup:
+    wonthefootballworldcup = ["Brazil", "Italy", "Germany", "Uruguay", "Argentina", "France", "United Kingdom", "Spain"]
+    for country in wonthefootballworldcup:
         if country not in mapinfo.infobycountryname:
             print("Country cannot be found: ", country)
-            
+    
     qkey = akinator.addquestion('Has your country ever won a football world cup?')
     for countryname in mapinfo.infobycountryname:
         if countryname in wonthefootballworldcup:
@@ -166,26 +166,28 @@ def add_additional_questions(akinator, mapinfo):
     Countries that don't use the metric system
     """
     print("Metric system")
-    dontusethemetricystem = ["United States", "Liberia", "Burma"]
-    if country in dontusethemetricystem:
+    dontusethemetricystem = ["United States of America", "Liberia", "Burma"]
+    for country in dontusethemetricystem:
         if country not in mapinfo.infobycountryname:
             print("Country cannot be found: ", country)
             
     qkey = akinator.addquestion('Is your country one of the three that do not use the metric system?')
     for countryname in mapinfo.infobycountryname:
         if countryname in dontusethemetricystem:
-            akinator.addanswer(qkey, countryname, [0.95, 0.05])
+            akinator.addanswer(qkey, countryname, [0.90, 0.10])
         else:
-            akinator.addanswer(qkey, countryname, [0.05, 0.95])
-            
+            akinator.addanswer(qkey, countryname, [0.10, 0.90])
+    
+    
+    
     
     """
     Hosted the olympic games
-    """
+   
     print("Olympic games")
     hostedolympicgames = ["United States", "France", "Germany", "Greece", "Japan", "Italy", "United Kingdom", "Canada", "Australia", "Russia", "South Korea", "Switzerland", "Norway", "Austria", "China", "Brazil", "Sweden", "Belgium", "Netherlands", "Finland", "Mexico", "Spain", "Yugoslavia"]
     wellknownolympichosts = ["United States", "France", "Germany", "Greece", "Japan", "United Kingdom", "Australia", "Russia", "South Korea", "China", "Brazil"]
-    if country in hostedolympicgames:
+    for country in hostedolympicgames:
         if country not in mapinfo.infobycountryname:
             print("Country cannot be found: ", country)
             
@@ -202,6 +204,29 @@ def add_additional_questions(akinator, mapinfo):
                 akinator.addanswer(qkey, countryname, [0.05, 0.95])
             else:
                 akinator.addanswer(qkey, countryname, [0.30, 0.70])
+    """
+    
+    """
+    Does your country use the Euro as its currency?
+    """    
+    eurocountries = [ "Austria", "Belgium", "Cyprus", "Estonia", "Finland", "France", "Germany", "Greece", "Ireland", "Italy", "Latvia", "Lithuania", "Luxembourg", "Malta", "Netherlands", "Portugal", "Slovakia", "Slovenia", "Spain"]
+    for country in eurocountries:
+        print(country)
+        if country not in mapinfo.infobycountryname:
+            print("Country cannot be found: ", country)
+            
+    qkey = akinator.addquestion('Has your country ever won a football world cup?')
+    for countryname in mapinfo.infobycountryname:
+        if countryname in eurocountries:
+            akinator.addanswer(qkey, countryname, [0.85, 0.15])
+        else:
+            akinator.addanswer(qkey, countryname, [0.15, 0.85])
+    
+    
+    for country in mapinfo.infobycountryname.keys():
+        if "burma" in country.lower():
+            print(country)
+    
     
 
 def setup_geography_akinator(akinator, mapinfo):

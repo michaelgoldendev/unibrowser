@@ -333,7 +333,7 @@ for key in countries.keys():
 
 lang_answers = {}
 
-langyes = [0.65,0.35]
+langyes = [0.85,0.15]
 langno = [0.2,0.8]
 for key in countries.keys(): 
     country = countries[key]

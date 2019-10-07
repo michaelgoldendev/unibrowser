@@ -66,10 +66,10 @@ selectedcolor = pressedcolor
 
 fontpenblack = QPen(QColor(0,0,0,225))
 fontpentransparent = QPen(QColor(0,0,0,30))
-normalfont = QFont('Roboto', 48, weight=QFont.Bold)
-boldfont = QFont('Roboto', 48, weight=QFont.Bold)
-normalfont.setWeight(100)
-boldfont.setWeight(100)
+normalfont = QFont('Roboto', 36, weight=QFont.Bold)
+boldfont = QFont('Roboto', 36, weight=QFont.Bold)
+#normalfont.setWeight(100)
+#boldfont.setWeight(100)
 
 twotimers = True
     
@@ -117,7 +117,7 @@ class AnswerPanelWidget(QWidget):
         self.blockwidth = 160
         self.blockheight = self.blockwidth
         self.blockrounding = 7
-        self.buttonspacing = 825
+        self.buttonspacing = 842
         self.yoffset = 0
         for (index,ans) in enumerate(self.answers):
             self.blockrects.append(QRectF(self.panelpadding + index*(self.blockwidth+self.buttonspacing),  self.panelpadding + self.yoffset,  self.blockwidth,  self.blockheight))      
@@ -259,8 +259,7 @@ class AnswerPanelWidget(QWidget):
             
                           
             
-            if self.answerstates[index] == 1 or self.mouseoveranswer == index:
-                """
+            if self.answerstates[index] == 1 or self.mouseoveranswer == index:                
                 facerect = QRectF(0.0,0.0, self.blockwidth, self.blockheight)
                 tempbrush = qp.brush()
                 brush = QBrush(self.facepixmaps[index]);
@@ -270,8 +269,7 @@ class AnswerPanelWidget(QWidget):
                 qp.setBrush(brush);
                 qp.drawRoundedRect(blockrect, self.blockrounding, self.blockrounding)
                 qp.setBrush(tempbrush)
-                """
-                qp.fillPath(self.blockpaths[index], flashcolor)
+                #qp.fillPath(self.blockpaths[index], flashcolor)
             elif self.answerstates[index] == 2:
                 qp.fillPath(self.blockpaths[index], selectedcolor)
             else:      
@@ -286,17 +284,20 @@ class AnswerPanelWidget(QWidget):
             
             qp.setPen(fontpenblack)
             if self.answerstates[index] == 1:
-                #qp.setPen(fontpentransparent)
-                qp.setPen(Qt.white)
+                qp.setPen(fontpentransparent)
+                #qp.setPen(Qt.white)
+                """"""                
             qp.drawText(blockrect, Qt.AlignCenter, answer)
 
 class QuestionAnswerWidget(QWidget):
     
     def __init__(self, parent):
         super().__init__()
+        
+        self.questionno = 0
         self.parent = parent
 
-        self.inputmethod =  InputMethod.SSVEP # InputMethod.MOUSE, InputMethod.SSVEP
+        self.inputmethod =  InputMethod.MOUSE # InputMethod.MOUSE, InputMethod.SSVEP
         
         self.setWindowTitle('Unibrowser')
         self.setMouseTracking(True)
@@ -305,8 +306,8 @@ class QuestionAnswerWidget(QWidget):
         self.vboxlayout.setAlignment(Qt.AlignCenter)
         
         
-        self.warningtimesecs = 3.0 if RELEASE_VERSION else 1.0
-        self.questiontimeoutmillis = 12000.0 if RELEASE_VERSION else 3000.0
+        self.warningtimesecs = 1.0 if RELEASE_VERSION else 1.0
+        self.questiontimeoutmillis = 15000.0 if RELEASE_VERSION else 3000.0
         self.questiontimeoutmillis += self.warningtimesecs*1000.0
         self.timerintervalmillis = 1000.0
         self.questionno = 0
@@ -314,8 +315,8 @@ class QuestionAnswerWidget(QWidget):
         self.questiontimer = QTimer()        
         self.questiontimer.timeout.connect(self.updatequestion)
         
-        self.bcianimationtimeoutmillis = 6000.0 if RELEASE_VERSION else 2000.0
-        self.choicetimeoutmillis = 4000.0 if RELEASE_VERSION else 2000.0
+        self.bcianimationtimeoutmillis = 3000.0 if RELEASE_VERSION else 2000.0
+        self.choicetimeoutmillis = 1.0 if RELEASE_VERSION else 2000.0
         
         labelfont = QFont()
         labelfont.setPointSize(16)
@@ -346,13 +347,15 @@ class QuestionAnswerWidget(QWidget):
                 self.label.setText("%s\nNow focus on your best guess." % self.parent.questiontext)
             return elapsedtimequestionmillis
     
-    
-    def shownextquestion(self):
+    def shownextquestion(self):                                
+        if self.inputmethod == InputMethod.SSVEP and self.questionno >= 1:
+            self.questiontimeoutmillis = 8000.0              
         self.parent.nextquestion()
         self.answerpanel.resetSelected()
         self.refreshquestiontext()
-        if self.inputmethod == InputMethod.SSVEP:
+        if self.inputmethod == InputMethod.SSVEP:  
             self.questiontimer.start(self.timerintervalmillis)
+        self.questionno += 1
     
     def updatequestion(self):
         self.questionframe += 1        
