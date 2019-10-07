@@ -211,22 +211,34 @@ def add_additional_questions(akinator, mapinfo):
     """    
     eurocountries = [ "Austria", "Belgium", "Cyprus", "Estonia", "Finland", "France", "Germany", "Greece", "Ireland", "Italy", "Latvia", "Lithuania", "Luxembourg", "Malta", "Netherlands", "Portugal", "Slovakia", "Slovenia", "Spain"]
     for country in eurocountries:
-        print(country)
         if country not in mapinfo.infobycountryname:
             print("Country cannot be found: ", country)
             
-    qkey = akinator.addquestion('Has your country ever won a football world cup?')
+    qkey = akinator.addquestion('Does your country use the Euro as its currency?')
     for countryname in mapinfo.infobycountryname:
         if countryname in eurocountries:
             akinator.addanswer(qkey, countryname, [0.85, 0.15])
         else:
             akinator.addanswer(qkey, countryname, [0.15, 0.85])
-    
+        
+    """
+    Does your country have the death penalty?
+    """    
+    deathpenalty = ["Afghanistan", "India", "Nigeria", "United States of America", "Iran", "Japan", "Taiwan", "Kuwait", "Zimbabwe", "Libya", "Thailand", "Guyana", "Uganda", "Bangladesh", "Iraq", "Indonesia", "Botswana", "United Arab Emirates", "The Bahamas", "Cuba", "Belarus", "Yemen", "Saudi Arabia", "Vietnam", "Syria", "Egypt", "South Sudan", "Democratic Republic of the Congo", "Ethiopia", "People's Republic of China", "Sudan", "Comoros", "Somalia", "Barbados", "Malaysia", "Chad", "Pakistan", "Oman", "Singapore", "Saint Kitts and Nevis", "Saint Lucia", "Bahrain", "North Korea", "Equatorial Guinea", "Saint Vincent and the Grenadines", "Palestine", "Trinidad and Tobago", "Lesotho", "Antigua and Barbuda", "Belize", "Dominica", "Jamaica", "Jordan"]
+    for country in deathpenalty:
+        if country not in mapinfo.infobycountryname:
+            print("Country cannot be found: ", country)
+            
+    qkey = akinator.addquestion('Does your country have the death penalty?')
+    for countryname in mapinfo.infobycountryname:
+        if countryname in deathpenalty:
+            akinator.addanswer(qkey, countryname, [0.85, 0.15])
+        else:
+            akinator.addanswer(qkey, countryname, [0.15, 0.85])
     
     for country in mapinfo.infobycountryname.keys():
-        if "burma" in country.lower():
+        if "bahama" in country.lower():
             print(country)
-    
     
 
 def setup_geography_akinator(akinator, mapinfo):
