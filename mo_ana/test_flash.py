@@ -29,10 +29,10 @@ for i in range(600):
 
     ims.append([im])
 
-f = 15
+f = 11
 ani = animation.ArtistAnimation(fig, ims, interval=1000/(2*f), blit=True) # interval in ms
                                # repeat_delay=1000)
 
-# ani.save('dynamic_images.mp4')
+ani.save('dynamic_images11.mp4')
 
 plt.show()
