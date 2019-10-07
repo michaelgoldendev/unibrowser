@@ -7,9 +7,10 @@
   - scipy (1.3.1 or higher)
   - PyQT5 (5.9.2 or higher)
   - basemap (1.2.0 or higher)  
+  - pandas
   - These packages can be installed using the Anaconda Prompt as follows:
     ```console
-    conda install numpy scipy pyqt basemap
+    conda install numpy scipy pyqt basemap pandas
     ```
 
 ## Usage
