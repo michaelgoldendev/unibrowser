@@ -15,7 +15,7 @@ from sklearn.cross_decomposition import CCA
 from sklearn import metrics
 import os
 
-freqlist = [5,12]
+freqlist = [6,10,15]
 freq = 250
 lowcut = 1
 highcut = 30
@@ -33,21 +33,26 @@ lcoi = len(coi)
 #         "data/data_focus-no_yes8.0Hz_no5.0Hz_15.0seconds_06-Oct-2019.21h18m32s870917.csv",\
 #         "data/data_focus-no_yes5.0Hz_no8.0Hz_15.0seconds_06-Oct-2019.21h17m23s077029.csv"]
 
-names = ["data_focus-no_yes5.0Hz_no12.0Hz_15.0seconds_06-Oct-2019.21h48m50s451534.csv",\
-         "data_focus-no_yes5.0Hz_no12.0Hz_15.0seconds_06-Oct-2019.21h49m50s067700.csv",\
-         "data_focus-no_yes12.0Hz_no5.0Hz_15.0seconds_06-Oct-2019.21h50m48s928173.csv",\
-         "data_focus-no_yes12.0Hz_no5.0Hz_15.0seconds_06-Oct-2019.21h51m34s971764.csv",\
-         "data_focus-yes_yes5.0Hz_no12.0Hz_15.0seconds_06-Oct-2019.21h48m26s609510.csv",\
-         "data_focus-yes_yes5.0Hz_no12.0Hz_15.0seconds_06-Oct-2019.21h49m24s415637.csv",\
-         "data_focus-yes_yes12.0Hz_no5.0Hz_15.0seconds_06-Oct-2019.21h50m26s364628.csv",\
-         "data_focus-yes_yes12.0Hz_no5.0Hz_15.0seconds_06-Oct-2019.21h51m11s695088.csv"]
+#names = ["data_focus-no_yes5.0Hz_no12.0Hz_15.0seconds_06-Oct-2019.21h48m50s451534.csv",\
+#         "data_focus-no_yes5.0Hz_no12.0Hz_15.0seconds_06-Oct-2019.21h49m50s067700.csv",\
+#         "data_focus-no_yes12.0Hz_no5.0Hz_15.0seconds_06-Oct-2019.21h50m48s928173.csv",\
+#         "data_focus-no_yes12.0Hz_no5.0Hz_15.0seconds_06-Oct-2019.21h51m34s971764.csv",\
+#         "data_focus-yes_yes5.0Hz_no12.0Hz_15.0seconds_06-Oct-2019.21h48m26s609510.csv",\
+#         "data_focus-yes_yes5.0Hz_no12.0Hz_15.0seconds_06-Oct-2019.21h49m24s415637.csv",\
+#         "data_focus-yes_yes12.0Hz_no5.0Hz_15.0seconds_06-Oct-2019.21h50m26s364628.csv",\
+#         "data_focus-yes_yes12.0Hz_no5.0Hz_15.0seconds_06-Oct-2019.21h51m11s695088.csv"]
 
-targets = np.array([12, 12, 5, 5, 5, 5, 12, 12]);
-targetsidx = np.array([1,1,0,0,0,0,1,1]);
+names = ['no_stim.csv','no_stim2.csv','stim6.csv','stim6_2.csv','stim10.csv','stim10_2.csv','stim15.csv','stim15_2.csv']
+
+#targets = np.array([12, 12, 5, 5, 5, 5, 12, 12]);
+#targetsidx = np.array([1,1,0,0,0,0,1,1]);
+
+targets = np.array([1,1,6,6,10,10,15,15]);
+targetsidx = np.array([0,0,0,0,1,1,2,2]);
 
 EEG = []
 for s in names:
-    E = np.loadtxt('C:/Users/Vilsnk/3D Objects/unibrowser/src/data06-Oct-2019_21h45m45s703578/'+s, delimiter=",")
+    E = np.loadtxt('C:/Users/Vilsnk/3D Objects/unibrowser/src/data/'+s, delimiter=",",skiprows=1)
     E = E[1:,coi]
     E = E - np.mean(E,0).reshape(1,-1) 
     E = E - np.mean(E,1).reshape(-1,1)
@@ -146,7 +151,7 @@ def freq_basis_emp(filteredEEG,f):
 #        scores[t, f] = metrics.r2_score(Y,cca.predict(X))#cca.score(X,Y)
     
 cca = CCA(n_components=1)
-scores = np.zeros((len(filteredEEG),2))
+scores = np.zeros((len(filteredEEG),len(freqlist)))
 T = int(len(filteredEEG[0])/freq)
 
 # X : array-like, shape = [n_samples, n_features]
