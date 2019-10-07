@@ -55,6 +55,7 @@ def add_demographic_info_from_shape_data(akinator, mapinfo):
         else:
             akinator.addanswer(qkey, countryname, defaultno)
     
+    """
     qkey = akinator.addquestion('Is the population less than 10,000,000?')
     for countryname in mapinfo.locationlist:
         info = mapinfo.infobycountryname[countryname]
@@ -67,6 +68,14 @@ def add_demographic_info_from_shape_data(akinator, mapinfo):
     for countryname in mapinfo.locationlist:
         info = mapinfo.infobycountryname[countryname]
         if info['POP_EST'] >= 50000000:
+            akinator.addanswer(qkey, countryname, defaultyes)
+        else:
+            akinator.addanswer(qkey, countryname, defaultno)
+    """
+    qkey = akinator.addquestion('Is the population greater than 30,000,000?')
+    for countryname in mapinfo.locationlist:
+        info = mapinfo.infobycountryname[countryname]
+        if info['POP_EST'] >= 30000000:
             akinator.addanswer(qkey, countryname, defaultyes)
         else:
             akinator.addanswer(qkey, countryname, defaultno)
@@ -104,9 +113,9 @@ def add_additional_questions(akinator, mapinfo):
     qkey = akinator.addquestion('Does your country drive on the left side of the road?')
     for countryname in mapinfo.infobycountryname:
         if countryname in leftdrivingcountries:
-            akinator.addanswer(qkey, countryname, [0.75, 0.25])
+            akinator.addanswer(qkey, countryname, [0.85, 0.15])
         else:
-            akinator.addanswer(qkey, countryname, [0.25, 0.75])
+            akinator.addanswer(qkey, countryname, [0.15, 0.85])
     
     """
     Countries with nuclear weapons
@@ -115,7 +124,7 @@ def add_additional_questions(akinator, mapinfo):
     if country in hasnuclearweapons:
         if country not in mapinfo.infobycountryname:
             print("Country cannot be found: ", country)
-    qkey = akinator.addquestion('Does your country currently possess nuclear weapons?')
+    qkey = akinator.addquestion('Does your country currently have nuclear weapons?')
     for countryname in mapinfo.infobycountryname:
         if countryname in hasnuclearweapons:
             akinator.addanswer(qkey, countryname, [0.9, 0.1])
@@ -133,9 +142,9 @@ def add_additional_questions(akinator, mapinfo):
     qkey = akinator.addquestion('Has your country ever participated in Eurovision?')
     for countryname in mapinfo.infobycountryname:
         if countryname in participatedineurovsion:
-            akinator.addanswer(qkey, countryname, [0.8, 0.2])
+            akinator.addanswer(qkey, countryname, [0.80, 0.2])
         else:
-            akinator.addanswer(qkey, countryname, [0.2, 0.8])
+            akinator.addanswer(qkey, countryname, [0.2, 0.80])
             
     
     """
@@ -162,7 +171,7 @@ def add_additional_questions(akinator, mapinfo):
         if country not in mapinfo.infobycountryname:
             print("Country cannot be found: ", country)
             
-    qkey = akinator.addquestion('Is your country one of the three that do not use the metric system!?')
+    qkey = akinator.addquestion('Is your country one of the three that do not use the metric system?')
     for countryname in mapinfo.infobycountryname:
         if countryname in dontusethemetricystem:
             akinator.addanswer(qkey, countryname, [0.95, 0.05])
@@ -217,23 +226,29 @@ def setup_geography_akinator(akinator, mapinfo):
         # Adds a large number of questions from the CIA fact book
         jsondict = json.load(open(questionsfile,"r"))
         nocode = {}
+        exclusions = ["Oceania"]
         for (questionttext, countryname, countrycodestring, answervec) in jsondict:
+            excluded = False
+            for exclusion in exclusions:
+                if exclusion in questionttext:
+                    excluded = True
             #if not questionttext.startswith("Does your country border"):
-            m = re.match(r'^.*?\.(..).*$', countrycodestring)
-            countrycode = countrycodestring[0:2]
-            if m != None:
-                countrycode = m[1]
-            
-            countrycode = ciacountrycode_tocountrycode.get(countrycode, countrycode)
+            if not excluded:
+                m = re.match(r'^.*?\.(..).*$', countrycodestring)
+                countrycode = countrycodestring[0:2]
+                if m != None:
+                    countrycode = m[1]
                 
-            internetcode_to_ciacountryname[countrycode] = countryname
-            if countrycode in mapinfo.twolettercountrycode_to_countryname:
-                countryname = mapinfo.twolettercountrycode_to_countryname[countrycode]
-                akinator.addquestionanswer(questionttext, countryname, answervec, questiontype=akinator_model.QuestionType.NONTERMINAL)
-            else:
-                nocode[countrycode] = countryname
-        #print(internetcode_to_ciacountryname)
-                print(nocode)
+                countrycode = ciacountrycode_tocountrycode.get(countrycode, countrycode)
+                    
+                internetcode_to_ciacountryname[countrycode] = countryname
+                if countrycode in mapinfo.twolettercountrycode_to_countryname:
+                    countryname = mapinfo.twolettercountrycode_to_countryname[countrycode]
+                    akinator.addquestionanswer(questionttext, countryname, answervec, questiontype=akinator_model.QuestionType.NONTERMINAL)
+                else:
+                    nocode[countrycode] = countryname
+            #print(internetcode_to_ciacountryname)
+                    print(nocode)
     
     add_demographic_info_from_shape_data(akinator, mapinfo)
     add_additional_questions(akinator, mapinfo)
