@@ -284,7 +284,7 @@ class QuestionAnswerWidget(QWidget):
         super().__init__()
         self.parent = parent
 
-        self.inputmethod =  InputMethod.MOUSE # InputMethod.MOUSE, InputMethod.SSVEP
+        self.inputmethod =  InputMethod.SSVEP # InputMethod.MOUSE, InputMethod.SSVEP
         
         self.setWindowTitle('Unibrowser')
         self.setMouseTracking(True)
@@ -293,8 +293,8 @@ class QuestionAnswerWidget(QWidget):
         self.vboxlayout.setAlignment(Qt.AlignCenter)
         
         
-        self.warningtimesecs = 3
-        self.questiontimeoutmillis = 15000.0 if RELEASE_VERSION else 3000.0
+        self.warningtimesecs = 3.0 if RELEASE_VERSION else 1.0
+        self.questiontimeoutmillis = 12000.0 if RELEASE_VERSION else 3000.0
         self.questiontimeoutmillis += self.warningtimesecs*1000.0
         self.timerintervalmillis = 1000.0
         self.questionno = 0
@@ -302,7 +302,7 @@ class QuestionAnswerWidget(QWidget):
         self.questiontimer = QTimer()        
         self.questiontimer.timeout.connect(self.updatequestion)
         
-        self.bcianimationtimeoutmillis = 6000.0 if RELEASE_VERSION else 6000.0
+        self.bcianimationtimeoutmillis = 6000.0 if RELEASE_VERSION else 2000.0
         self.choicetimeoutmillis = 4000.0 if RELEASE_VERSION else 2000.0
         
         labelfont = QFont()
@@ -331,7 +331,7 @@ class QuestionAnswerWidget(QWidget):
             if elapsedtimequestionsecs > self.warningtimesecs:
                 self.label.setText("%s\n(%d seconds)" % (self.parent.questiontext, elapsedtimequestionsecs-self.warningtimesecs))
             else:
-                self.label.setText("%s\nNow focus on your best guess and count the flashes." % self.parent.questiontext)
+                self.label.setText("%s\nNow focus on your best guess." % self.parent.questiontext)
             return elapsedtimequestionmillis
     
     
@@ -355,7 +355,7 @@ class QuestionAnswerWidget(QWidget):
         self.answerpanel.startBCIanimation()
     
     def stopBCI(self):
-        answervec = self.parent.model.answerdict[('South Africa',self.parent.qkey)]
+        answervec = self.parent.model.answerdict[('Italy',self.parent.qkey)]
         #simulatedanswer = samplediscrete(answervec)
         simulatedanswer = np.argmax(answervec)
         print(self.parent.model.questions[self.parent.qkey])

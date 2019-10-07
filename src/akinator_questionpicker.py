@@ -9,7 +9,7 @@ The goal of a question picker function is typically to minimise the number of qu
 import numpy as np
 import akinator_model
 
-def cutoff_function(questionno, alpha=0.01, minval=0.05, maxvalue=0.5):
+def cutoff_function(questionno, alpha=0.05, minval=0.05, maxvalue=0.5):
     v = np.exp(-(float(questionno)-1.0)*alpha)*maxvalue
     return max(minval, v)
 
