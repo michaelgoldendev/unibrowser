@@ -29,7 +29,7 @@ for i in range(600):
 
     ims.append([im])
 
-f = 20
+f = 6
 ani = animation.ArtistAnimation(fig, ims, interval=1000/(2*f), blit=True) # interval in ms
                                # repeat_delay=1000)
 

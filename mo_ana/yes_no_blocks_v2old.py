@@ -15,7 +15,7 @@ from sklearn.cross_decomposition import CCA
 from sklearn import metrics
 
 freq = 250
-freqlist = [5,8]
+freqlist = [5,12]
 
 # coi = np.hstack([np.arange(2), np.arange(3,7)])
 coi = np.arange(8)
@@ -36,10 +36,17 @@ lcoi = len(coi)
 #         "data/data_focus-no_yes5.0Hz_no8.0Hz_15.0seconds_06-Oct-2019.21h40m04s170801.csv",\
 #         "data/data_focus-no_yes5.0Hz_no8.0Hz_15.0seconds_06-Oct-2019.21h37m28s339114.csv"]
 
+names = ["data06-Oct-2019_21h45m45s703578/data_focus-yes_yes12.0Hz_no5.0Hz_15.0seconds_06-Oct-2019.21h51m11s695088.csv",\
+         "data06-Oct-2019_21h45m45s703578/data_focus-yes_yes12.0Hz_no5.0Hz_15.0seconds_06-Oct-2019.21h50m26s364628.csv",\
+         "data06-Oct-2019_21h45m45s703578/data_focus-yes_yes5.0Hz_no12.0Hz_15.0seconds_06-Oct-2019.21h49m24s415637.csv",\
+         "data06-Oct-2019_21h45m45s703578/data_focus-yes_yes5.0Hz_no12.0Hz_15.0seconds_06-Oct-2019.21h48m26s609510.csv",\
+         "data06-Oct-2019_21h45m45s703578/data_focus-no_yes12.0Hz_no5.0Hz_15.0seconds_06-Oct-2019.21h51m34s971764.csv",\
+         "data06-Oct-2019_21h45m45s703578/data_focus-no_yes12.0Hz_no5.0Hz_15.0seconds_06-Oct-2019.21h50m48s928173.csv",\
+         "data06-Oct-2019_21h45m45s703578/data_focus-no_yes5.0Hz_no12.0Hz_15.0seconds_06-Oct-2019.21h49m50s067700.csv",\
+         "data06-Oct-2019_21h45m45s703578/data_focus-no_yes5.0Hz_no12.0Hz_15.0seconds_06-Oct-2019.21h48m50s451534.csv"]
 
-
-targets = np.array([8, 5, 5, 8, 8, 8, 5, 5, 5, 5, 8, 8]);
-targetsidx = np.array([1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1]);
+targets = np.array([12, 12, 5, 5, 5, 5, 12, 12]);
+targetsidx = np.array([1, 1, 0, 0, 0, 0, 1, 1]);
 
 EEG = []
 for s in names:
@@ -64,8 +71,8 @@ def butter_bandpass(lowcut, highcut, fs, order=5):
     sos = butter(order, [low, high], btype='band',output='sos')
     return sos
 
-lowcut = 5
-highcut = 30
+lowcut = 4
+highcut = 40
 
 def filter_and_cut_EGG_signal(EEG):
     
