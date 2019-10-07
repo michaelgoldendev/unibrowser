@@ -22,7 +22,7 @@ def samplediscrete(probabilityvec):
     return 0
     
 
-RELEASE_VERSION = True
+RELEASE_VERSION = False
 
 class Answer(IntEnum):
     NONE = -1
@@ -61,17 +61,13 @@ unselectedcolor = Qt.white
 mouseovercolor = QColor(225,225,225,255)
 pressedcolor = QColor(175,175,175,255)        
 selectedcolor = QColor(255,128,128,255)
-flashcolor = QColor(0,0,0,255)
+flashcolor = QColor(50,50,200,255)
 selectedcolor = pressedcolor
 
 fontpenblack = QPen(QColor(0,0,0,225))
 fontpentransparent = QPen(QColor(0,0,0,30))
-normalfont = QFont('Roboto', 48, weight=QFont.Bold)
-boldfont = QFont('Roboto', 48, weight=QFont.Bold)
-normalfont.setWeight(100)
-boldfont.setWeight(100)
-
-twotimers = False
+normalfont = QFont('Roboto', 36, weight=QFont.Normal)
+boldfont = QFont('Roboto', 36, weight=QFont.Bold)
     
 class AnswerPanelWidget(QWidget):
     
@@ -95,29 +91,28 @@ class AnswerPanelWidget(QWidget):
         
         self.answers = ["Yes", "No"]
         self.answerstates = [0 for i in range(len(self.answers))]
-        self.frequencies = [9.0,14.0]   
+        self.frequencies = [5.0,9.0]   
         self.divisions = 2
         self.fractionofdivision = 1 # show face for 1/4 of time
         self.periodsinmilli = [1000.0/freq/self.divisions for freq in self.frequencies]
         self.counts = [0 for i in range(len(self.answers))]
         
         self.timers = [QTimer() for i in range(len(self.answers))]
-        if twotimers:
-            for (index, timer) in enumerate(self.timers):
-                timer.timeout.connect(partial(self.flash,index))
+        for (index, timer) in enumerate(self.timers):
+            """timer.timeout.connect(partial(self.flash,index))"""
             
-        if not twotimers:
-            self.singletimer = QTimer()
-            self.singletimer.timeout.connect(self.singleflash)
-            self.singletimerperiod = 0.001
+        
+        self.singletimer = QTimer()
+        self.singletimer.timeout.connect(self.singleflash)
+        self.singletimerperiod = 0.005
         
         
         self.blockrects = []
         self.panelpadding = 2
-        self.blockwidth = 160
+        self.blockwidth = 150
         self.blockheight = self.blockwidth
         self.blockrounding = 7
-        self.buttonspacing = 825
+        self.buttonspacing = 880
         self.yoffset = 0
         for (index,ans) in enumerate(self.answers):
             self.blockrects.append(QRectF(self.panelpadding + index*(self.blockwidth+self.buttonspacing),  self.panelpadding + self.yoffset,  self.blockwidth,  self.blockheight))      
@@ -162,26 +157,20 @@ class AnswerPanelWidget(QWidget):
         self.counts[index] += 1
         self.repaint()
         
-    def startBCIanimation(self):        
-        if twotimers:
-            for (index,period) in enumerate(self.periodsinmilli):
-                self.counts[index] = 0
-                self.timers[index].start(period)
-        else:
-            self.singletimer.start(self.singletimerperiod)
-            
-    
-    def stopBCIanimation(self):        
+    def startBCIanimation(self):
+        self.singletimer.start(self.singletimerperiod)
+        
         for (index,period) in enumerate(self.periodsinmilli):
-             self.answerstates[index] = 0
-            
-        if twotimers:
-            for (index,period) in enumerate(self.periodsinmilli):
-                    self.timers[index].stop()
-        else:
-            self.singletimer.stop()
+            self.counts[index] = 0
+            self.timers[index].start(period)
+    
+    def stopBCIanimation(self):
+        self.singletimer.stop()
+        
+        for (index,period) in enumerate(self.periodsinmilli):
+                self.timers[index].stop()
+                self.answerstates[index] = 0
         self.repaint()
-            
 
     def paintEvent(self, event):
         qp = QPainter()
@@ -260,7 +249,7 @@ class AnswerPanelWidget(QWidget):
                           
             
             if self.answerstates[index] == 1 or self.mouseoveranswer == index:
-                """
+               
                 facerect = QRectF(0.0,0.0, self.blockwidth, self.blockheight)
                 tempbrush = qp.brush()
                 brush = QBrush(self.facepixmaps[index]);
@@ -270,8 +259,7 @@ class AnswerPanelWidget(QWidget):
                 qp.setBrush(brush);
                 qp.drawRoundedRect(blockrect, self.blockrounding, self.blockrounding)
                 qp.setBrush(tempbrush)
-                """
-                qp.fillPath(self.blockpaths[index], flashcolor)
+                #qp.fillPath(self.blockpaths[index], flashcolor)
             elif self.answerstates[index] == 2:
                 qp.fillPath(self.blockpaths[index], selectedcolor)
             else:      
@@ -286,9 +274,9 @@ class AnswerPanelWidget(QWidget):
             
             qp.setPen(fontpenblack)
             if self.answerstates[index] == 1:
-                #qp.setPen(fontpentransparent)
-                qp.setPen(Qt.white)
-            qp.drawText(blockrect, Qt.AlignCenter, answer)
+                qp.setPen(fontpentransparent)
+            else:
+                qp.drawText(blockrect, Qt.AlignCenter, answer)
 
 class QuestionAnswerWidget(QWidget):
     
