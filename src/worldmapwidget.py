@@ -29,7 +29,7 @@ class WorldMapCanvas(FigureCanvas):
     def __init__(self, mapinfo, parent=None, width=12, height=10, dpi=None):        
         self.showLegend = False
         self.image = plt.imread(os.path.abspath(os.path.join(script_path, '../images/unibrowser_binoculars_icon-1178x1844.png')))
-        self.oi = OffsetImage(self.image, zoom = 0.28)
+        self.oi = OffsetImage(self.image, zoom = 0.25)
         
         self.mapinfo = mapinfo
         fig = plt.figure(figsize=(width,height))       
