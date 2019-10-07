@@ -74,6 +74,7 @@ class UnicornStreamingAcquisition:
             i += 1
             if i % 1000 == 0:
                 print(i,self.captureframes)
+            time.sleep(0.05)
     
     def cancelAcquisition(self):
         self.captureframes = 0
