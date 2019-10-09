@@ -34,8 +34,6 @@ plt.plot(time, eeg[2,:]/100, lw=1.5, color='k')
 eegfiltered = butter_bandpass_filter(eeg[2,:]/100, 3, 40, 128, order=5)
 plt.plot(time, eegfiltered, lw=1.5, color='b')
 
-
-
 # 32779 = trial initiation
 # 32780 = trial termination
 
@@ -48,7 +46,7 @@ plt.scatter(time[timesterm], np.ones(timesterm.shape), color='r')
 
 labels = np.array([4, 2, 3, 5, 1, 2, 5, 4, 2, 3, 1, 5])
 freq_targets = np.array([12.00, 10.00, 8.57, 7.50, 6.66])
-trial = 5
+trial = 1
 
 # Define window length (4 seconds)
 win = 16 * sr
